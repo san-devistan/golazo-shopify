@@ -4,6 +4,17 @@
 
 {% capture children %}
   {% unless product == blank %}
+    <button
+      type="button"
+      class="product-card__wishlist"
+      data-product-id="{{ product.id }}"
+      data-wishlist-add-label="{{ 'accessibility.add_to_wishlist' | t: product_title: product.title | escape }}"
+      data-wishlist-remove-label="{{ 'accessibility.remove_from_wishlist' | t: product_title: product.title | escape }}"
+      aria-label="{{ 'accessibility.add_to_wishlist' | t: product_title: product.title | escape }}"
+      aria-pressed="false"
+    >
+      {% render 'golazo-heart' %}
+    </button>
     <div
       class="product-badges product-badges--{{ settings.badge_position }}"
       style="

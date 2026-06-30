@@ -57,6 +57,82 @@
   </svg>
 {% endcapture %}
 
+{% capture cart_preview %}
+  <div
+    class="header-cart-preview"
+    data-cart-preview
+    data-money-format="{{ shop.money_format | strip_html | escape }}"
+    data-money-with-currency-format="{{ shop.money_with_currency_format | strip_html | escape }}"
+    data-currency="{{ cart.currency.iso_code | default: localization.country.currency.iso_code | escape }}"
+    data-use-currency-code-items="{{ settings.currency_code_enabled_cart_items }}"
+    data-use-currency-code-total="{{ settings.currency_code_enabled_cart_total }}"
+    data-empty-text="{{ 'content.your_cart_is_empty' | t | escape }}"
+    data-quantity-text="{{ 'content.quantity' | t | escape }}"
+    data-total-text="{{ 'content.cart_estimated_total' | t | escape }}"
+    aria-hidden="true"
+  >
+    <div class="header-cart-preview__heading">{{ 'content.cart_title' | t }}</div>
+    <div data-cart-preview-content>
+      {% if cart.empty? %}
+        <p class="header-cart-preview__empty">{{ 'content.your_cart_is_empty' | t }}</p>
+      {% else %}
+        <ul class="header-cart-preview__items list-unstyled">
+          {% for item in cart.items limit: 3 %}
+            {%- liquid
+              if settings.currency_code_enabled_cart_items
+                assign preview_line_price = item.final_line_price | money_with_currency
+              else
+                assign preview_line_price = item.final_line_price | money
+              endif
+            -%}
+            <li class="header-cart-preview__item">
+              <div class="header-cart-preview__media">
+                {% if item.image %}
+                  {{
+                    item.image
+                    | image_url: width: 120
+                    | image_tag: class: 'header-cart-preview__image', loading: 'lazy'
+                  }}
+                {% else %}
+                  <span class="header-cart-preview__media-placeholder"></span>
+                {% endif %}
+              </div>
+              <div class="header-cart-preview__details">
+                <div class="header-cart-preview__title-row">
+                  <p class="header-cart-preview__title">{{ item.product.title }}</p>
+                  <p class="header-cart-preview__price">{{ preview_line_price }}</p>
+                </div>
+                {% if item.product.has_only_default_variant == false and item.item_components.size == 0 %}
+                  <dl class="header-cart-preview__options">
+                    {% for option in item.options_with_values %}
+                      <div class="header-cart-preview__option">
+                        <dt>{{ option.name }}:</dt>
+                        <dd>{{ option.value }}</dd>
+                      </div>
+                    {% endfor %}
+                  </dl>
+                {% endif %}
+                <p class="header-cart-preview__quantity">{{ 'content.quantity' | t }}: {{ item.quantity }}</p>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+        {%- liquid
+          if settings.currency_code_enabled_cart_total
+            assign preview_total_price = cart.total_price | money_with_currency
+          else
+            assign preview_total_price = cart.total_price | money
+          endif
+        -%}
+        <div class="header-cart-preview__total">
+          <span>{{ 'content.cart_estimated_total' | t }}</span>
+          <span>{{ preview_total_price }}</span>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endcapture %}
+
 <header-actions
   {% if display_style == 'text' %}
     class="header-actions--text"
@@ -66,6 +142,7 @@
   {% if shop.customer_accounts_enabled %}
     {% liquid
       assign account_actions_style = ''
+      assign account_login_url = routes.account_login_url | default: routes.account_url | default: routes.root_url
       if display_style == 'text' and section
         assign actions_font = section.settings.actions_font | default: 'body'
         assign font_obj = settings.type_heading_font
@@ -82,50 +159,70 @@
         assign account_actions_style = '--header-actions-font-family: ' | append: font_family_safe | append: '; --header-actions-font-weight: ' | append: font_obj.weight | append: ';'
       endif
     %}
-    <div
-      class="account-button header-actions__action{% if display_style == 'text' %} account-button--text{% endif %} color-custom-popover"
-    >
-      <shopify-account
-        menu="{{ customer_account_menu }}"
-        {% if account_actions_style != blank %}
-          style="{{ account_actions_style }}"
-        {% endif %}
+    {% if customer %}
+      <div
+        class="account-button header-actions__action{% if display_style == 'text' %} account-button--text{% endif %} color-custom-popover"
       >
-        {% if customer %}
+        <shopify-account
+          menu="{{ customer_account_menu }}"
+          {% if account_actions_style != blank %}
+            style="{{ account_actions_style }}"
+          {% endif %}
+        >
           <div class="account-button__fallback"></div>
-        {% else %}
-          <span
-            slot="signed-out-avatar"
-            class="account-button__text header-actions__text-style {% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}"
-          >
-            {{ 'content.account_title' | t }}
-          </span>
+        </shopify-account>
+      </div>
+    {% else %}
+      <a
+        class="account-button header-actions__action{% if display_style == 'text' %} account-button--text{% endif %} color-custom-popover"
+        href="{{ account_login_url }}"
+        aria-label="{{ 'content.account_title' | t }}"
+      >
+        <span
+          class="account-button__text header-actions__text-style {% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}"
+        >
+          {{ 'content.account_title' | t }}
+        </span>
 
-          <span
-            slot="signed-out-avatar"
-            class="{% if display_style != 'icon' %}desktop:hidden{% endif %}"
-            aria-hidden="true"
-          >
-            {{ account_icon }}
-          </span>
-        {% endif %}
-      </shopify-account>
-    </div>
+        <span
+          class="{% if display_style != 'icon' %}desktop:hidden{% endif %}"
+          aria-hidden="true"
+        >
+          {{ account_icon }}
+        </span>
+      </a>
+    {% endif %}
   {% endif %}
 
+  <button
+    type="button"
+    class="header-actions__action golazo-wishlist"
+    aria-label="{{ 'accessibility.wishlist' | t }}"
+  >
+    <span class="svg-wrapper" aria-hidden="true">
+      {% render 'golazo-heart' %}
+    </span>
+  </button>
+
   {% if settings.cart_type == 'drawer' and template.name != 'cart' %}
-    <button
-      class="header-actions__action button-unstyled{% if display_style == 'text' %} header-actions__text-style{% endif %}"
-      on:click="#cart-drawer/toggle"
-      aria-haspopup="dialog"
-      aria-expanded="false"
-      aria-controls="cart-drawer"
-      aria-label="{{ 'accessibility.cart' | t }}"
-      aria-describedby="cart-bubble-text"
-      data-testid="cart-drawer-trigger"
+    <div
+      class="header-actions__cart-wrapper"
+      data-cart-preview-wrapper
     >
-      {{ cart_icon }}
-    </button>
+      <button
+        class="header-actions__action button-unstyled{% if display_style == 'text' %} header-actions__text-style{% endif %}"
+        on:click="#cart-drawer/toggle"
+        aria-haspopup="dialog"
+        aria-expanded="false"
+        aria-controls="cart-drawer"
+        aria-label="{{ 'accessibility.cart' | t }}"
+        aria-describedby="cart-bubble-text"
+        data-testid="cart-drawer-trigger"
+      >
+        {{ cart_icon }}
+      </button>
+      {{ cart_preview }}
+    </div>
   {% else %}
     <a
       href="{{ routes.cart_url }}"
@@ -245,6 +342,197 @@
 
   .header__column--right header-actions {
     margin-inline-start: calc(var(--gap-md) * -1);
+  }
+
+  .header-actions__cart-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .header-actions__cart-wrapper::after {
+    content: '';
+    position: absolute;
+    inset-inline-end: 0;
+    inset-block-start: 100%;
+    display: none;
+    width: min(22rem, calc(100vw - 2rem));
+    height: 0.75rem;
+  }
+
+  .header-cart-preview {
+    position: absolute;
+    inset-block-start: calc(100% + 0.65rem);
+    inset-inline-end: 0;
+    z-index: calc(var(--layer-header-menu) + 1);
+    width: min(22rem, calc(100vw - 2rem));
+    max-height: min(70vh, 28rem);
+    overflow: auto;
+    padding: 0.75rem;
+    background: var(--color-background);
+    color: var(--color-foreground);
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.16);
+    box-shadow: 0 14px 32px rgb(0 0 0 / 0.08);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-0.25rem);
+    pointer-events: none;
+    transition:
+      opacity var(--animation-speed) var(--animation-easing),
+      visibility var(--animation-speed) var(--animation-easing),
+      transform var(--animation-speed) var(--animation-easing);
+  }
+
+  .header-cart-preview__heading,
+  .header-cart-preview__title,
+  .header-cart-preview__price,
+  .header-cart-preview__total {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight, 700);
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+
+  .header-cart-preview__heading {
+    margin: 0 0 0.65rem;
+    font-size: 0.88rem;
+    line-height: 1;
+  }
+
+  .header-cart-preview__empty {
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: 0.82rem;
+    line-height: 1.35;
+    color: rgb(var(--color-foreground-rgb) / 0.72);
+  }
+
+  .header-cart-preview__items {
+    display: grid;
+    gap: 0.65rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  .header-cart-preview__item {
+    display: grid;
+    grid-template-columns: 4.25rem minmax(0, 1fr);
+    gap: 0.65rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid rgb(var(--color-foreground-rgb) / 0.1);
+  }
+
+  .header-cart-preview__media {
+    width: 4.25rem;
+    aspect-ratio: 1;
+    background: rgb(var(--color-foreground-rgb) / 0.04);
+    overflow: hidden;
+  }
+
+  .header-cart-preview__image,
+  .header-cart-preview__media-placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .header-cart-preview__image {
+    object-fit: cover;
+  }
+
+  .header-cart-preview__details {
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: 0.32rem;
+  }
+
+  .header-cart-preview__title-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    align-items: start;
+  }
+
+  .header-cart-preview__title,
+  .header-cart-preview__price {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.08;
+  }
+
+  .header-cart-preview__title {
+    overflow-wrap: anywhere;
+  }
+
+  .header-cart-preview__price {
+    white-space: nowrap;
+  }
+
+  .header-cart-preview__options {
+    display: grid;
+    gap: 0.16rem;
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: 0.74rem;
+    line-height: 1.25;
+    color: rgb(var(--color-foreground-rgb) / 0.68);
+  }
+
+  .header-cart-preview__option {
+    display: flex;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .header-cart-preview__option dt,
+  .header-cart-preview__option dd,
+  .header-cart-preview__quantity {
+    margin: 0;
+    font-weight: var(--font-body--weight);
+  }
+
+  .header-cart-preview__quantity {
+    font-family: var(--font-body--family);
+    font-size: 0.74rem;
+    line-height: 1.25;
+    color: rgb(var(--color-foreground-rgb) / 0.68);
+  }
+
+  .header-cart-preview__total {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0;
+    padding-top: 0.65rem;
+    border-top: none;
+    font-size: 0.86rem;
+    line-height: 1;
+  }
+
+  @media screen and (min-width: 750px) {
+    .header-actions__cart-wrapper:hover::after,
+    .header-actions__cart-wrapper:focus-within::after {
+      display: block;
+    }
+
+    .header-actions__cart-wrapper:hover .header-cart-preview,
+    .header-actions__cart-wrapper:focus-within .header-cart-preview {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .header-cart-preview {
+      display: none;
+    }
+  }
+
+  body:has(#cart-drawer[open]) .header-cart-preview {
+    display: none;
   }
 
   .header-actions__cart-icon {

@@ -3,7 +3,16 @@
 {% assign placeholder = 'content.featured_products' | t %}
 {% assign placeholder = '<h3>' | append: placeholder | append: '</h3>' %}
 
-{% render 'text', fallback_text: placeholder, block: block %}
+{% render 'text', fallback_text: placeholder, block: block, class: 'product-list__collection-title' %}
+
+{% stylesheet %}
+  .product-list__collection-title.product-list__collection-title.text-block:is(.h1, .h2, .h3, .h4, .h5, .h6) a:hover,
+  .product-list__collection-title.product-list__collection-title.text-block:is(.h1, .h2, .h3, .h4, .h5, .h6) a:focus-visible {
+    text-decoration-line: underline;
+    text-decoration-thickness: from-font;
+    text-underline-offset: 0.12em;
+  }
+{% endstylesheet %}
 
 {% schema %}
 {

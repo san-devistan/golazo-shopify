@@ -1,0 +1,41 @@
+{%- doc -%}
+  Renders a GOLAZO-style breadcrumb row (back link + Home / collection / current).
+
+  @param {object} [product] - Product object (on product pages)
+  @param {object} [collection] - Collection object (on collection pages)
+
+  @example
+  {% render 'golazo-breadcrumb', product: product %}
+  {% render 'golazo-breadcrumb', collection: collection %}
+{%- enddoc -%}
+
+{%- liquid
+  assign home_label = 'Home'
+  assign back_label = 'Back'
+-%}
+
+{%- if product != blank -%}
+  {%- comment -%} Use the referring collection if present, else the product's first collection. {%- endcomment -%}
+  {%- assign bc_collection = collection | default: product.collections.first -%}
+  <nav class="golazo-breadcrumb" aria-label="Breadcrumb">
+    {%- if bc_collection != blank -%}
+      <a class="golazo-breadcrumb__back" href="{{ bc_collection.url }}">&larr; {{ back_label }}</a>
+    {%- else -%}
+      <a class="golazo-breadcrumb__back" href="{{ routes.root_url }}">&larr; {{ back_label }}</a>
+    {%- endif -%}
+    <a href="{{ routes.root_url }}">{{ home_label }}</a>
+    {%- if bc_collection != blank -%}
+      <span class="golazo-breadcrumb__sep" aria-hidden="true">/</span>
+      <a href="{{ bc_collection.url }}">{{ bc_collection.title }}</a>
+    {%- endif -%}
+    <span class="golazo-breadcrumb__sep" aria-hidden="true">/</span>
+    <span class="golazo-breadcrumb__current">{{ product.title }}</span>
+  </nav>
+{%- elsif collection != blank -%}
+  <nav class="golazo-breadcrumb" aria-label="Breadcrumb">
+    <a class="golazo-breadcrumb__back" href="{{ routes.root_url }}">&larr; {{ back_label }}</a>
+    <a href="{{ routes.root_url }}">{{ home_label }}</a>
+    <span class="golazo-breadcrumb__sep" aria-hidden="true">/</span>
+    <span class="golazo-breadcrumb__current">{{ collection.title }}</span>
+  </nav>
+{%- endif -%}

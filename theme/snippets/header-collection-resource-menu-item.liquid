@@ -1,0 +1,81 @@
+{%- doc -%}
+  Renders a Shopify collection as a desktop header menu item with product flyout.
+
+  @param {object} collection - The collection to render.
+  @param {string} item_id - Unique suffix for submenu IDs.
+  @param {string} background_color_classes - Submenu color classes.
+  @param {string} menu_content_type - Mega menu content type.
+  @param {object} block_settings - Header menu block settings.
+  @param {number} image_border_radius - Image corner radius.
+  @param {object} section - The section object.
+
+  @example
+  {% render 'header-collection-resource-menu-item', collection: collection, item_id: 'collection-1' %}
+{%- enddoc -%}
+
+{% liquid
+  assign has_submenu = false
+  if menu_content_type == 'featured_products' and collection.products_count > 0
+    assign has_submenu = true
+  endif
+
+  assign max_featured_products = 3
+  assign max_featured_products_tablet = 3
+%}
+
+<li
+  role="presentation"
+  class="menu-list__list-item"
+  on:focus="/activate"
+  on:blur="/deactivate"
+  on:pointerenter="/activate"
+  on:pointerleave="/deactivate"
+>
+  <a
+    href="{{ collection.url }}"
+    data-skip-node-update="true"
+    class="menu-list__link"
+    {%- if has_submenu -%}
+      aria-controls="submenu-{{ item_id }}"
+      aria-haspopup="true"
+      aria-expanded="false"
+    {%- endif -%}
+    ref="menuitem"
+  >
+    <span class="menu-list__link-title">{{- collection.title -}}</span>
+  </a>
+  {%- if has_submenu -%}
+    <div class="menu-list__submenu{{ background_color_classes }}" ref="submenu[]">
+      <div
+        id="submenu-{{ item_id }}"
+        class="menu-list__submenu-inner"
+        style="{% render 'submenu-font-styles', settings: block_settings %}"
+      >
+        <div class="mega-menu section section--full-width-margin section--{{ section.settings.section_width }}">
+          <div
+            class="mega-menu__grid mega-menu__grid--collection-products"
+            data-menu-grid-id="MegaMenuList-{{ item_id }}"
+          >
+            <span
+              class="mega-menu__content"
+              style="--menu-content-columns-desktop: {{ max_featured_products }}; --menu-content-columns-tablet: {{ max_featured_products_tablet }}; --resource-card-corner-radius: {{ image_border_radius }}px;"
+            >
+              <ul class="mega-menu__content-list mega-menu__content-list--products list-unstyled">
+                {% for product in collection.products limit: max_featured_products %}
+                  <li class="mega-menu__content-list-item">
+                    {% assign product_card_id = item_id | append: '-' | append: forloop.index %}
+                    {% render 'header-product-card',
+                      product: product,
+                      card_id: product_card_id,
+                      product_view_context: 'dialog'
+                    %}
+                  </li>
+                {% endfor %}
+              </ul>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+</li>

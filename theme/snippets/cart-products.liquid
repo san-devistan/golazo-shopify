@@ -45,7 +45,7 @@
 
 <div
   {{ block.shopify_attributes }}
-  class="cart-items__wrapper{% if context == 'drawer' and cart.empty? or force_empty %} cart-items__wrapper--drawer-empty{% endif %}"
+  class="cart-items__wrapper{% if context == 'drawer' %} cart-items__wrapper--drawer{% endif %}{% if context == 'drawer' and cart.empty? or force_empty %} cart-items__wrapper--drawer-empty{% endif %}"
   {% if context == 'drawer' and cart.empty? or force_empty %}
     data-cart-drawer-empty
   {% endif %}
@@ -236,7 +236,9 @@
                         <dl class="cart-items__variants">
                           {%- for option in item.options_with_values -%}
                             <div class="cart-items__variant">
-                              <dt class="visually-hidden">{{ option.name }}:</dt>
+                              <dt class="{% if context == 'drawer' %}cart-items__variant-name{% else %}visually-hidden{% endif %}">
+                                {{- option.name -}}:
+                              </dt>
                               <dd>
                                 {{- option.value -}}
                                 {%- if forloop.last != true %},&nbsp;{% endif -%}
@@ -293,35 +295,37 @@
                     {%- endif -%}
                   </div>
 
-                  <div class="cart-items__unit-price-wrapper">
-                    <div>
-                      {% if item.original_price != item.final_price %}
-                        <span class="visually-hidden">{{ 'content.price_sale' | t }}</span>
-                        <span>{{ item.final_price | money }}</span>
-                        <span class="visually-hidden">{{ 'content.price_regular' | t }}</span>
-                        <s class="compare-at-price">
-                          {% if item.variant.compare_at_price > item.original_price %}
-                            {{ item.variant.compare_at_price | money }}
-                          {% else %}
-                            {{ item.original_price | money }}
-                          {% endif %}
-                        </s>
-                      {% else %}
-                        {% if item.variant.compare_at_price > item.original_price %}
+                  {% unless context == 'drawer' %}
+                    <div class="cart-items__unit-price-wrapper">
+                      <div>
+                        {% if item.original_price != item.final_price %}
                           <span class="visually-hidden">{{ 'content.price_sale' | t }}</span>
-                        {% else %}
-                          <span class="visually-hidden">{{ 'content.price' | t }}</span>
-                        {% endif %}
-
-                        <span>{{ item.original_price | money }}</span>
-
-                        {% if item.variant.compare_at_price > item.original_price %}
+                          <span>{{ item.final_price | money }}</span>
                           <span class="visually-hidden">{{ 'content.price_regular' | t }}</span>
-                          <s class="compare-at-price">{{ item.variant.compare_at_price | money }}</s>
+                          <s class="compare-at-price">
+                            {% if item.variant.compare_at_price > item.original_price %}
+                              {{ item.variant.compare_at_price | money }}
+                            {% else %}
+                              {{ item.original_price | money }}
+                            {% endif %}
+                          </s>
+                        {% else %}
+                          {% if item.variant.compare_at_price > item.original_price %}
+                            <span class="visually-hidden">{{ 'content.price_sale' | t }}</span>
+                          {% else %}
+                            <span class="visually-hidden">{{ 'content.price' | t }}</span>
+                          {% endif %}
+
+                          <span>{{ item.original_price | money }}</span>
+
+                          {% if item.variant.compare_at_price > item.original_price %}
+                            <span class="visually-hidden">{{ 'content.price_regular' | t }}</span>
+                            <s class="compare-at-price">{{ item.variant.compare_at_price | money }}</s>
+                          {% endif %}
                         {% endif %}
-                      {% endif %}
+                      </div>
                     </div>
-                  </div>
+                  {% endunless %}
                 </td>
                 <td
                   class="cart-items__quantity"
@@ -333,20 +337,26 @@
                     | default: true, allow_false: true
                   %}
                   <div class="cart-items__quantity-controls">
-                    {% render 'volume-pricing-info',
-                      variant: item.variant,
-                      unique_id: item.index,
-                      quantity: item.quantity
-                    %}
+                    {% if context == 'drawer' %}
+                      <span class="cart-items__drawer-quantity cart-primary-typography">
+                        {{- 'content.quantity' | t }}: {{ item.quantity -}}
+                      </span>
+                    {% else %}
+                      {% render 'volume-pricing-info',
+                        variant: item.variant,
+                        unique_id: item.index,
+                        quantity: item.quantity
+                      %}
 
-                    {% render 'quantity-selector',
-                      product: item.product,
-                      variant: item.variant,
-                      in_cart_quantity: item.quantity,
-                      line_index: item.index,
-                      class: 'cart-primary-typography',
-                      can_update_quantity: can_update_quantity
-                    %}
+                      {% render 'quantity-selector',
+                        product: item.product,
+                        variant: item.variant,
+                        in_cart_quantity: item.quantity,
+                        line_index: item.index,
+                        class: 'cart-primary-typography',
+                        can_update_quantity: can_update_quantity
+                      %}
+                    {% endif %}
 
                     <button
                       class="button cart-items__remove"
@@ -458,6 +468,54 @@
     text-align: center;
   }
 
+  .cart-items__wrapper--drawer .cart-items__title,
+  .cart-items__wrapper--drawer .cart-items__price {
+    font-family: var(--font-heading--family);
+    font-weight: 900;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+  }
+
+  .cart-items__wrapper--drawer .cart-items__title {
+    font-size: clamp(1.35rem, 4.5cqi, 1.75rem);
+    line-height: 0.95;
+  }
+
+  .cart-items__wrapper--drawer .cart-items__price {
+    min-width: max-content;
+    font-size: clamp(1rem, 3.2cqi, 1.3rem);
+    line-height: 1;
+  }
+
+  .cart-items__wrapper--drawer .cart-items__variants-wrapper,
+  .cart-items__wrapper--drawer .cart-items__properties {
+    font-family: var(--font-paragraph--family);
+    font-style: var(--font-paragraph--style);
+    font-size: var(--font-size--sm);
+    font-weight: var(--font-paragraph--weight);
+    line-height: 1.2;
+    letter-spacing: 0;
+    text-transform: none;
+    color: rgb(var(--color-foreground-rgb) / 0.72);
+  }
+
+  .cart-items__wrapper--drawer .cart-items__variants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-3xs) var(--gap-xs);
+  }
+
+  .cart-items__wrapper--drawer .cart-items__variant {
+    display: inline-flex;
+    gap: var(--gap-3xs);
+  }
+
+  .cart-items__wrapper--drawer .cart-items__variant-name {
+    font-weight: var(--font-paragraph--weight);
+    color: inherit;
+  }
+
   .cart-items__table {
     width: 100%;
     border-spacing: 0;
@@ -492,16 +550,17 @@
     min-width: 0;
   }
 
-  /* Cart drawer: separate grid areas for variants and unit price */
+  /* Cart drawer: separate grid areas for variants and quantity */
   .cart-items__table-row--full-width-variants {
-    grid-template-columns: clamp(2.5rem, 15cqi, 7.5rem) minmax(0, 1fr) auto;
-    grid-template-rows: repeat(4, min-content) 1fr;
+    grid-template-columns: clamp(5rem, 22cqi, 6.5rem) minmax(0, 1fr) auto;
+    grid-template-rows: min-content 1fr min-content min-content min-content;
     grid-template-areas:
       'media details price'
+      'media . .'
       'media variants variants'
-      'media unit_price unit_price'
       'media quantity quantity'
       'media error error';
+    row-gap: var(--gap-3xs);
 
     .cart-items__details {
       display: contents;
@@ -513,6 +572,7 @@
 
     .cart-items__variants-wrapper {
       grid-area: variants;
+      margin-block-start: var(--margin-3xs);
 
       &:empty {
         display: none;
@@ -521,11 +581,6 @@
       p {
         margin: 0;
       }
-    }
-
-    .cart-items__unit-price-wrapper {
-      grid-area: unit_price;
-      font-size: var(--font-size--sm);
     }
 
     .cart-items__price {
@@ -678,6 +733,42 @@
     height: auto;
   }
 
+  .cart-items__wrapper--drawer .cart-items__quantity {
+    margin-block-start: 0;
+    width: 100%;
+  }
+
+  .cart-items__wrapper--drawer .cart-items__quantity-controls {
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-sm);
+  }
+
+  .cart-items__wrapper--drawer .cart-items__drawer-quantity {
+    font-family: var(--font-paragraph--family);
+    font-style: var(--font-paragraph--style);
+    font-size: var(--font-size--sm);
+    font-weight: var(--font-paragraph--weight);
+    line-height: 1.2;
+    letter-spacing: 0;
+    text-transform: none;
+    color: rgb(var(--color-foreground-rgb) / 0.72);
+  }
+
+  .cart-items__wrapper--drawer .cart-items__remove {
+    width: 1.5rem;
+    height: 1.5rem;
+    min-height: 0;
+    margin-inline-start: auto;
+    align-self: center;
+  }
+
+  .cart-items__wrapper--drawer .cart-items__remove .svg-wrapper {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
   .cart-items__remove {
     background-color: transparent;
     color: var(--color-foreground);
@@ -794,18 +885,24 @@
       align-items: flex-end;
     }
 
-    /* Cart drawer: separate areas for variants and unit price */
+    /* Cart drawer: keep variants and quantity under the product details */
     .cart-items__table-row--full-width-variants {
-      grid-template-rows: min-content min-content min-content 1fr;
+      grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+      grid-template-rows: min-content 1fr min-content min-content min-content;
       grid-template-areas:
-        'media details quantity price'
-        'media variants variants variants'
-        'media unit_price unit_price unit_price'
-        'media error error error';
+        'media details price'
+        'media . .'
+        'media variants variants'
+        'media quantity quantity'
+        'media error error';
 
-      .cart-items__quantity,
+      .cart-items__quantity {
+        grid-area: quantity;
+        margin-block-start: var(--margin-3xs);
+      }
+
       .cart-items__price {
-        grid-area: initial;
+        grid-area: price;
       }
     }
   }

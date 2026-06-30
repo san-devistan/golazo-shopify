@@ -1,0 +1,13 @@
+{%- doc -%}
+  Renders the GOLAZO wishlist heart (outline + filled states).
+  Toggle the filled state by adding the `is-liked` class to the button (handled by golazo-wishlist.js).
+
+  @example
+  {% render 'golazo-heart' %}
+{%- enddoc -%}
+<svg class="golazo-heart golazo-heart--outline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" focusable="false" aria-hidden="true">
+  <path d="M10 17.25 2.93 10.27a4.24 4.24 0 0 1 0-6.05 4.38 4.38 0 0 1 6.14 0L10 5.13l.93-.91a4.38 4.38 0 0 1 6.14 0 4.24 4.24 0 0 1 0 6.05L10 17.25Z" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+<svg class="golazo-heart golazo-heart--solid" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" focusable="false" aria-hidden="true">
+  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+</svg>

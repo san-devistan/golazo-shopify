@@ -1,0 +1,221 @@
+{%- doc -%}
+  Renders a product in the header flyout using the same product-card component structure as product grids.
+
+  @param {object} product - The product to render.
+  @param {string} card_id - Unique suffix for DOM IDs.
+  @param {string} [product_view_context] - Analytics context.
+
+  @example
+  {% render 'header-product-card', product: product, card_id: 'header-product-1' %}
+{%- enddoc -%}
+
+{% liquid
+  assign selected_variant = product.selected_or_first_available_variant
+  assign featured_media = product.featured_media
+  assign image_ratio = featured_media.preview_image.aspect_ratio | default: '1'
+  assign product_card_link_id = 'header-product-card-link-' | append: card_id | append: '-' | append: product.id
+  assign product_card_dom_id = 'header-product-card-' | append: card_id | append: '-' | append: product.id
+  assign product_view_context = product_view_context | default: 'collection'
+
+  assign image_sizes = '(min-width: 990px) 220px, 180px'
+  assign max_visible_slide_count = 1
+  if settings.product_card_carousel
+    assign max_visible_slide_count = 5
+  elsif settings.show_second_image_on_hover
+    assign max_visible_slide_count = 2
+  endif
+
+  if product.media.size > 0
+    assign variant_images = product.images | where: 'attached_to_variant?', true | map: 'src'
+    assign generic_media_size = product.media.size | minus: variant_images.size
+    assign other_media = product.media | reject: 'src', featured_media
+    assign media_list_to_show = featured_media | concat: other_media
+    assign show_arrows = false
+
+    if product.media.size > 2 and generic_media_size > 0
+      assign show_arrows = true
+    endif
+  endif
+%}
+
+{% capture gallery_children %}
+  <button
+    type="button"
+    class="product-card__wishlist"
+    data-product-id="{{ product.id }}"
+    data-wishlist-add-label="{{ 'accessibility.add_to_wishlist' | t: product_title: product.title | escape }}"
+    data-wishlist-remove-label="{{ 'accessibility.remove_from_wishlist' | t: product_title: product.title | escape }}"
+    aria-label="{{ 'accessibility.add_to_wishlist' | t: product_title: product.title | escape }}"
+    aria-pressed="false"
+  >
+    {% render 'golazo-heart' %}
+  </button>
+  <div
+    class="product-badges product-badges--{{ settings.badge_position }}"
+    style="
+      --badge-border-radius: {{ settings.badge_corner_radius }}px;
+      --badge-font-family: var(--font-{{ settings.badge_font_family }}--family); --badge-font-weight: var(--font-{{ settings.badge_font_family }}--weight); --badge-text-transform: {{ settings.badge_text_transform }};
+    "
+  >
+    {%- if product.available == false or product.compare_at_price > product.price -%}
+      <div
+        class="
+          product-badges__badge product-badges__badge--rectangle
+          {% if product.available == false %} color-custom-badge-sold-out{% elsif product.compare_at_price > product.price %} color-custom-badge-sale{% endif %}
+        "
+      >
+        {%- if product.available == false -%}
+          {{ 'content.product_badge_sold_out' | t }}
+        {%- elsif product.compare_at_price > product.price -%}
+          {{ 'content.product_badge_sale' | t }}
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+{% endcapture %}
+
+<product-card
+  class="product-card size-style product-card--header-flyout"
+  data-product-id="{{ product.id }}"
+  id="{{ product_card_dom_id }}"
+  {% # theme-check-disable-next-line UnknownFilter %}
+  view-event-payload="{{ product | standard_event_data: 'view', context: product_view_context | escape }}"
+>
+  <a
+    id="{{ product_card_link_id | md5 }}"
+    href="{{ selected_variant.url }}"
+    class="product-card__link"
+    ref="productCardLink"
+  >
+    <span class="visually-hidden">{{ product.title }}</span>
+  </a>
+  <div
+    class="
+      product-card__content
+      layout-panel-flex
+      layout-panel-flex--column
+      product-grid__card
+      product-grid__card--header-flyout
+      spacing-style
+      border-style
+      gap-style
+    "
+    style="
+      --product-card-gap: 4px;
+      --product-card-alignment: stretch;
+      --padding-block-start: 0;
+      --padding-block-end: 0;
+      --padding-inline-start: 0;
+      --padding-inline-end: 0;
+    "
+  >
+    <div
+      ref="cardGallery"
+      class="card-gallery card-gallery--header-flyout"
+      style="--gallery-aspect-ratio: {{ image_ratio }};"
+      data-product-id="{{ product.id }}"
+      {% if settings.show_second_image_on_hover %}
+        on:pointerenter="/previewImage"
+        on:pointerleave="/resetImage"
+      {% endif %}
+      data-image-ratio="adapt"
+    >
+      {% if product.media.size > 0 %}
+        {% capture slides %}
+          {% for media in media_list_to_show %}
+            {% liquid
+              assign loading = 'lazy'
+              assign hidden = false
+              assign attributes = ''
+              if variant_images contains media.src
+                assign attributes = 'variant-image'
+
+                if forloop.first == false
+                  assign hidden = true
+                endif
+              endif
+
+              if forloop.first
+                assign visible_slide_count = 0
+              endif
+
+              unless hidden
+                assign visible_slide_count = visible_slide_count | plus: 1
+              endunless
+
+              if hidden == false and visible_slide_count > max_visible_slide_count
+                continue
+              endif
+
+              assign slide_class = 'product-media-container media-fit product-media-container--' | append: media.media_type
+
+              capture slide_children
+                render 'product-media', media: media, sizes: image_sizes, loading: loading, preview_image_only: true
+              endcapture
+
+              render 'slideshow-slide', slide_id: media.id, index: forloop.index0, hidden: hidden, class: slide_class, attributes: attributes, children: slide_children
+            %}
+          {% endfor %}
+        {% endcapture %}
+
+        {% liquid
+          assign slideshow_attributes = 'data-generic-media-size="[generic_media_size]"' | replace: '[generic_media_size]', generic_media_size
+          if settings.product_card_carousel == false
+            assign slideshow_attributes = slideshow_attributes | append: ' disabled="true"'
+          endif
+        %}
+
+        <a
+          class="contents"
+          ref="cardGalleryLink"
+          href="{{ selected_variant.url }}"
+          aria-label="{{ product.title | escape }}"
+        >
+          {% render 'slideshow',
+            ref: 'slideshow',
+            initial_slide: 0,
+            slides: slides,
+            slide_count: media_list_to_show.size,
+            show_arrows: show_arrows,
+            attributes: slideshow_attributes
+          %}
+        </a>
+      {% else %}
+        <div class="product-card-gallery__title-placeholder">
+          <a
+            class="contents"
+            ref="cardGalleryLink"
+            href="{{ selected_variant.url }}"
+          >
+            <span class="title-text">{{- product.title -}}</span>
+          </a>
+        </div>
+      {% endif %}
+      {{ gallery_children }}
+    </div>
+
+    <a
+      class="contents user-select-text"
+      ref="productTitleLink"
+      href="{{ selected_variant.url }}"
+    >
+      <div class="text-block rte spacing-style">
+        <p role="heading" aria-level="3">{{ product.title }}</p>
+      </div>
+    </a>
+
+    <product-price
+      class="text-block text-left h6 spacing-style"
+      data-product-id="{{ product.id }}"
+      style="--width: 100%;"
+    >
+      {% render 'price',
+        show_unit_price: true,
+        product_resource: product,
+        show_sale_price_first: true
+      %}
+    </product-price>
+  </div>
+</product-card>
+
+{% render 'product-badges-styles' %}

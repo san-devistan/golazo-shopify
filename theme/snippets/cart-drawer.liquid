@@ -93,7 +93,7 @@
                 </span>
               {% endif %}
             {% endcapture %}
-            {% assign cart_drawer_title = 'content.cart_title' | t %}
+            {% assign cart_drawer_title = 'content.cart_title' | t | upcase %}
             {% render 'theme-drawer-header',
               title: cart_drawer_title,
               drawer_id: 'cart-drawer',
@@ -150,6 +150,21 @@
     overflow: hidden;
   }
 
+  #cart-drawer .theme-drawer__title {
+    font-family: var(--font-heading--family);
+    font-weight: 900;
+    font-size: clamp(2.25rem, 7vw, 3rem);
+    line-height: 0.9;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  #cart-drawer .theme-drawer__badge {
+    font-family: var(--font-paragraph--family);
+    font-weight: var(--font-weight-bold, 700);
+    font-size: var(--font-size--sm);
+  }
+
   .cart-drawer__inner > .cart-items-component {
     flex: 1;
     min-height: 0;
@@ -196,6 +211,7 @@
 
   .cart-drawer__summary {
     --cart-drawer-summary-padding: var(--padding-lg);
+    --cart-drawer-summary-padding-top: var(--padding-md);
 
     position: sticky;
     bottom: 0;
@@ -204,11 +220,11 @@
     flex-direction: column;
     align-items: center;
     gap: var(--gap-xl);
-    padding: var(--cart-drawer-summary-padding);
+    padding: var(--cart-drawer-summary-padding-top) var(--cart-drawer-summary-padding) var(--cart-drawer-summary-padding);
     margin-top: auto;
     background-color: var(--color-background);
     /* stylelint-disable-next-line color-named */
-    mask-image: linear-gradient(to bottom, transparent, black var(--cart-drawer-summary-padding));
+    mask-image: linear-gradient(to bottom, transparent, black var(--cart-drawer-summary-padding-top));
 
     @media screen and (min-width: 750px) {
       --cart-drawer-summary-padding: var(--padding-2xl);

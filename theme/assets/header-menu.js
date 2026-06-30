@@ -2,8 +2,8 @@ import { Component } from '@theme/component';
 import { debounce, onDocumentLoaded, setHeaderMenuStyle } from '@theme/utilities';
 import { MegaMenuHoverEvent } from '@theme/events';
 
-/** Skim filter: pointer must dwell this long before MegaMenuHoverEvent fires. */
 const HOVER_COMMIT_DELAY_MS = 150;
+const HOVER_CLOSE_DELAY_MS = 120;
 
 /**
  * A custom element that manages a header menu.
@@ -28,6 +28,9 @@ class HeaderMenu extends Component {
   /** @type {ReturnType<typeof setTimeout> | undefined} */
   #hoverDispatchTimer;
 
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  #hoverCloseTimer;
+
   connectedCallback() {
     super.connectedCallback();
 
@@ -39,14 +42,12 @@ class HeaderMenu extends Component {
   disconnectedCallback() {
     super.disconnectedCallback();
     window.removeEventListener('resize', this.#resizeListener);
-    document.body.removeEventListener('pointermove', this.#onPointerMove);
-    if (this.#state.activeItem) {
-      this.#stopPointerTracking(this.#state.activeItem);
-    }
     this.overflowMenu?.removeEventListener('pointerleave', this.#overflowSubmenuListener);
     this.#cleanupMutationObserver();
     clearTimeout(this.#hoverDispatchTimer);
     this.#hoverDispatchTimer = undefined;
+    clearTimeout(this.#hoverCloseTimer);
+    this.#hoverCloseTimer = undefined;
   }
 
   /**
@@ -66,89 +67,6 @@ class HeaderMenu extends Component {
   #state = {
     activeItem: null,
   };
-
-  /**
-   * @type {ReturnType<typeof setTimeout> | undefined}
-   */
-  #pointerIdleTimer;
-
-  /**
-   * Last known pointer position for Safari hit-test reconciliation.
-   * @type {{ x: number, y: number }}
-   */
-  #lastPointer = { x: 0, y: 0 };
-
-  /**
-   * Update the safety box idle state on the active menu item.
-   * @param {PointerEvent} event
-   */
-  #onPointerMove = (event) => {
-    const activeLink = this.#state.activeItem;
-    if (!activeLink) return;
-
-    this.#lastPointer.x = event.clientX;
-    this.#lastPointer.y = event.clientY;
-
-    const moving = Math.abs(event.movementX) >= 1 || event.movementY >= 1;
-    activeLink.dataset.safetyBox = `${moving}`;
-
-    clearTimeout(this.#pointerIdleTimer);
-    if (moving) {
-      this.#pointerIdleTimer = setTimeout(() => {
-        if (this.#state.activeItem) {
-          this.#state.activeItem.dataset.safetyBox = 'false';
-          this.#reconcilePointerTarget();
-        }
-      }, 50);
-    } else {
-      this.#reconcilePointerTarget();
-    }
-  };
-
-  /**
-   * Check if the pointer is over a different menu item and trigger activation if so.
-   * Works around Safari not re-evaluating hit targets after pseudo-element changes.
-   */
-  #reconcilePointerTarget() {
-    const { x, y } = this.#lastPointer;
-    requestAnimationFrame(() => {
-      const target = document.elementFromPoint(x, y);
-      if (!target) return;
-      const listItem = target.closest('.menu-list__list-item');
-      if (listItem && !listItem.contains(this.#state.activeItem)) {
-        listItem.dispatchEvent(new PointerEvent('pointerenter', { bubbles: false }));
-      }
-    });
-  }
-
-  /**
-   * Begin pointer tracking for the safety box on the newly active item.
-   * @param {HTMLElement} item
-   * @param {HTMLElement | null} previousItem
-   */
-  #startPointerTracking(item, previousItem) {
-    if (previousItem) {
-      this.#stopPointerTracking(previousItem);
-    } else {
-      document.body.addEventListener('pointermove', this.#onPointerMove);
-    }
-
-    const rect = item.getBoundingClientRect();
-    const isOverlap = this.headerComponent?.hasAttribute('data-submenu-overlap-bottom-row');
-    const boundary = isOverlap ? this.headerComponent?.querySelector('.header__row--top') : this.headerComponent;
-    item.style.setProperty('--box-height', `${(boundary?.getBoundingClientRect().bottom ?? 0) - rect.top}px`);
-  }
-
-  /**
-   * Stop pointer tracking and remove all safety box properties from an item.
-   * @param {HTMLElement} item
-   */
-  #stopPointerTracking(item) {
-    window.clearTimeout(this.#pointerIdleTimer);
-    this.#pointerIdleTimer = undefined;
-    item.style.removeProperty('--box-height');
-    delete item.dataset.safetyBox;
-  }
 
   /**
    * Get the overflow menu
@@ -175,6 +93,9 @@ class HeaderMenu extends Component {
    */
   activate = (event) => {
     if (!(event.target instanceof Element) || !this.headerComponent) return;
+
+    clearTimeout(this.#hoverCloseTimer);
+    this.#hoverCloseTimer = undefined;
 
     let item = findMenuItem(event.target);
 
@@ -267,7 +188,6 @@ class HeaderMenu extends Component {
     this.headerComponent.style.setProperty('--submenu-height', `${finalHeight}px`);
     this.#setFullOpenHeaderHeight(finalHeight, headerVisibleHeight);
     this.style.setProperty('--submenu-opacity', '1');
-    this.#startPointerTracking(item, previouslyActiveItem);
   };
 
   /**
@@ -277,17 +197,26 @@ class HeaderMenu extends Component {
   deactivate(event) {
     if (!(event.target instanceof Element)) return;
 
-    const menu = findSubmenu(this.#state.activeItem);
-    const isMovingWithinMenu = event.relatedTarget instanceof Node && menu?.contains(document.activeElement);
-    const isMovingToSubmenu =
-      event.relatedTarget instanceof Node && event.type === 'blur' && menu?.contains(event.relatedTarget);
+    const activeItem = this.#state.activeItem;
+    const activeListItem = activeItem?.parentElement;
+    const menu = findSubmenu(activeItem);
+    const relatedTarget = event.relatedTarget instanceof Node ? event.relatedTarget : null;
+    const isMovingWithinActiveItem = Boolean(relatedTarget && activeListItem?.contains(relatedTarget));
+    const isMovingWithinMenu = Boolean(event.type === 'blur' && menu?.contains(document.activeElement));
+    const isMovingToSubmenu = Boolean(relatedTarget && menu?.contains(relatedTarget));
     const isMovingToOverflowMenu =
-      event.relatedTarget instanceof Node && event.relatedTarget.parentElement?.matches('[slot="overflow"]');
+      relatedTarget instanceof Element && relatedTarget.parentElement?.matches('[slot="overflow"]');
 
-    if (isMovingWithinMenu || isMovingToOverflowMenu || isMovingToSubmenu) {
-      if (this.#state.activeItem) {
-        this.#stopPointerTracking(this.#state.activeItem);
-      }
+    if (isMovingWithinActiveItem || isMovingWithinMenu || isMovingToOverflowMenu || isMovingToSubmenu) {
+      return;
+    }
+
+    if (event.type === 'pointerleave') {
+      clearTimeout(this.#hoverCloseTimer);
+      this.#hoverCloseTimer = setTimeout(() => {
+        this.#hoverCloseTimer = undefined;
+        this.#deactivate(activeItem);
+      }, HOVER_CLOSE_DELAY_MS);
       return;
     }
 
@@ -306,6 +235,8 @@ class HeaderMenu extends Component {
 
     clearTimeout(this.#hoverDispatchTimer);
     this.#hoverDispatchTimer = undefined;
+    clearTimeout(this.#hoverCloseTimer);
+    this.#hoverCloseTimer = undefined;
 
     this.headerComponent?.style.setProperty('--submenu-height', '0px');
     this.#setFullOpenHeaderHeight(0, 0);
@@ -313,9 +244,6 @@ class HeaderMenu extends Component {
     this.dataset.overflowExpanded = 'false';
 
     const submenu = findSubmenu(item);
-
-    document.body.removeEventListener('pointermove', this.#onPointerMove);
-    this.#stopPointerTracking(item);
 
     this.#state.activeItem = null;
     this.ariaExpanded = 'false';

@@ -423,14 +423,8 @@ export class ProductCard extends ProductCardLink {
   resetImage(event) {
     if (event.pointerType !== 'mouse') return;
 
-    const { slideshow } = this.refs;
-
-    if (!this.variantPicker) {
-      if (!slideshow) return;
-      slideshow.previous(undefined, { animate: false });
-    } else {
-      this.#resetVariant();
-    }
+    this.#resetVariant();
+    this.#previousSlideIndex = null;
   }
 
   /**

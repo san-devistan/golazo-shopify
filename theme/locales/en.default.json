@@ -10,6 +10,7 @@
 {
   "accessibility": {
     "account": "Account",
+    "add_to_wishlist": "Add {{ product_title }} to wishlist",
     "active_filters": "Active filters:",
     "cart": "Cart",
     "cart_count": "Total items in cart",
@@ -45,6 +46,7 @@
     "rating": "Rating of this product is {{ rating }} out of 5",
     "remove_item": "Remove {{ title}}",
     "remove": "Remove",
+    "remove_from_wishlist": "Remove {{ product_title }} from wishlist",
     "reset_search": "Reset search",
     "scroll_to": "Scroll to {{ title }}",
     "search_results_count": "{{ count }} search results found for \"{{ query }}\"",
@@ -63,6 +65,7 @@
     "find_country": "Find country",
     "view_disclosure_information_for_product": "View disclosure information for {{ product_title }}",
     "view_pricing_info": "View pricing information",
+    "wishlist": "Wishlist",
     "price_filter_low": "Low price",
     "price_filter_high": "High price"
   },

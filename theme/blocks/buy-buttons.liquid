@@ -110,6 +110,15 @@
             </div>
           {%- endif -%}
 
+          {%- unless has_quantity_rules -%}
+            <div
+              class="quantity-label golazo-qty-label"
+              ref="quantityLabel"
+            >
+              {{ 'products.product.quantity' | t }}
+            </div>
+          {%- endunless -%}
+
           {% content_for 'block', type: 'quantity', id: 'quantity' %}
 
           {%- if has_quantity_rules -%}
@@ -221,25 +230,41 @@
               </div>
             </volume-pricing>
           {%- endif -%}
-          {% content_for 'block',
-            type: 'add-to-cart',
-            id: 'add-to-cart',
-            can_add_to_cart: can_add_to_cart,
-            add_to_cart_text: add_to_cart_text
-          %}
-
-          {% content_for 'block',
-            type: 'accelerated-checkout',
-            id: 'accelerated-checkout',
-            can_add_to_cart: can_add_to_cart,
-            form_obj: form
-          %}
+          <div class="golazo-actions-row">
+            {% content_for 'block',
+              type: 'add-to-cart',
+              id: 'add-to-cart',
+              can_add_to_cart: can_add_to_cart,
+              add_to_cart_text: add_to_cart_text
+            %}
+          </div>
         </div>
         {%- if block_settings.gift_card_form and product.gift_card? -%}
           </span>
         {%- endif -%}
       {%- endform -%}
     </product-form-component>
+
+    <ul class="golazo-trust" role="list">
+      <li class="golazo-trust__item">
+        <span class="svg-wrapper" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" focusable="false">{% render 'icon', icon: 'lock' %}</svg>
+        </span>
+        Secure checkout
+      </li>
+      <li class="golazo-trust__item">
+        <span class="svg-wrapper" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" focusable="false">{% render 'icon', icon: 'box' %}</svg>
+        </span>
+        Free shipping over $150
+      </li>
+      <li class="golazo-trust__item">
+        <span class="svg-wrapper" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" focusable="false">{% render 'icon', icon: 'return' %}</svg>
+        </span>
+        30-day easy returns &amp; authenticity guaranteed
+      </li>
+    </ul>
   {%- else -%}
     <div class="product-form-buttons">
       <button
@@ -631,10 +656,6 @@
           "settings": {
             "style_class": "button-secondary"
           }
-        },
-        "accelerated-checkout": {
-          "type": "accelerated-checkout",
-          "static": true
         }
       }
     }

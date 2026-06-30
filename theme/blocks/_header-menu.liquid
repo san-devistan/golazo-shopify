@@ -9,6 +9,35 @@
 {% liquid
   assign block_settings = block.settings
   assign effective_submenu_color = block_settings.background_color | default: settings.page_background_color
+  assign has_named_collection_menu_links = false
+
+  for link in block_settings.menu.links
+    if has_named_collection_menu_links
+      break
+    endif
+
+    if link.type == 'collection_link'
+      assign has_named_collection_menu_links = true
+    endif
+
+    for childlink in link.links
+      if has_named_collection_menu_links
+        break
+      endif
+
+      if childlink.type == 'collection_link'
+        assign has_named_collection_menu_links = true
+      endif
+
+      for grandchildlink in childlink.links
+        if grandchildlink.type == 'collection_link'
+          assign has_named_collection_menu_links = true
+          break
+        endif
+      endfor
+    endfor
+  endfor
+
 %}
 
 {% case variant %}
@@ -44,20 +73,122 @@
             class="menu-list__list list-unstyled"
             role="list"
           >
-            {% for link in block_settings.menu.links %}
-              <li>
-                <a
-                  href="{{ link.url }}"
-                  id="MenuItem-{{ link.handle }}"
-                  class="menu-list__item"
-                  {% if link.current %}
-                    aria-current="page"
+            {% assign rendered_collection_index = 0 %}
+            {% if has_named_collection_menu_links == false %}
+              {% assign rendered_collection_handles = '' %}
+              {% for product in collections.all.products limit: 50 %}
+                {% for product_collection in product.collections %}
+                  {% unless product_collection.handle == 'all' %}
+                    {% assign collection_marker = '|' | append: product_collection.handle | append: '|' %}
+                    {% unless rendered_collection_handles contains collection_marker %}
+                      {% assign rendered_collection_handles = rendered_collection_handles | append: collection_marker %}
+                      {% assign rendered_collection_index = rendered_collection_index | plus: 1 %}
+                      <li>
+                        <a
+                          href="{{ product_collection.url }}"
+                          id="MenuItem-{{ product_collection.handle }}-{{ rendered_collection_index }}"
+                          class="menu-list__item"
+                        >
+                          {{- product_collection.title -}}
+                        </a>
+                      </li>
+                    {% endunless %}
+                  {% endunless %}
+                {% endfor %}
+              {% endfor %}
+              {% if rendered_collection_index == 0 %}
+                {% for link in block_settings.menu.links %}
+                  {% if link.type == 'catalog_link' or link.type == 'collections_link' %}
+                    {% assign rendered_collection_index = rendered_collection_index | plus: 1 %}
+                    <li>
+                      <a
+                        href="{{ link.url }}"
+                        id="MenuItem-{{ link.handle }}-{{ rendered_collection_index }}"
+                        class="menu-list__item"
+                        {% if link.current %}
+                          aria-current="page"
+                        {% endif %}
+                      >
+                        {{- link.title -}}
+                      </a>
+                    </li>
                   {% endif %}
-                >
-                  {{- link.title -}}
-                </a>
-              </li>
-            {% endfor %}
+                {% endfor %}
+              {% endif %}
+            {% else %}
+              {% for link in block_settings.menu.links %}
+              {% liquid
+                assign link_has_collection_children = false
+                for childlink in link.links
+                  if link_has_collection_children
+                    break
+                  endif
+
+                  if childlink.type == 'collection_link'
+                    assign link_has_collection_children = true
+                  endif
+
+                  for grandchildlink in childlink.links
+                    if grandchildlink.type == 'collection_link'
+                      assign link_has_collection_children = true
+                      break
+                    endif
+                  endfor
+                endfor
+              %}
+              {% if link_has_collection_children %}
+                {% for childlink in link.links %}
+                  {% if childlink.type == 'collection_link' %}
+                    {% assign rendered_collection_index = rendered_collection_index | plus: 1 %}
+                    <li>
+                      <a
+                        href="{{ childlink.url }}"
+                        id="MenuItem-{{ childlink.handle }}-{{ rendered_collection_index }}"
+                        class="menu-list__item"
+                        {% if childlink.current %}
+                          aria-current="page"
+                        {% endif %}
+                      >
+                        {{- childlink.title -}}
+                      </a>
+                    </li>
+                  {% else %}
+                    {% for grandchildlink in childlink.links %}
+                      {% if grandchildlink.type == 'collection_link' %}
+                        {% assign rendered_collection_index = rendered_collection_index | plus: 1 %}
+                        <li>
+                          <a
+                            href="{{ grandchildlink.url }}"
+                            id="MenuItem-{{ grandchildlink.handle }}-{{ rendered_collection_index }}"
+                            class="menu-list__item"
+                            {% if grandchildlink.current %}
+                              aria-current="page"
+                            {% endif %}
+                          >
+                            {{- grandchildlink.title -}}
+                          </a>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+                {% endfor %}
+              {% elsif link.type == 'collection_link' %}
+                {% assign rendered_collection_index = rendered_collection_index | plus: 1 %}
+                <li>
+                  <a
+                    href="{{ link.url }}"
+                    id="MenuItem-{{ link.handle }}-{{ rendered_collection_index }}"
+                    class="menu-list__item"
+                    {% if link.current %}
+                      aria-current="page"
+                    {% endif %}
+                  >
+                    {{- link.title -}}
+                  </a>
+                </li>
+              {% endif %}
+              {% endfor %}
+            {% endif %}
           </ul>
         </div>
       </div>
@@ -92,62 +223,156 @@
     %}
 
     {% capture children %}
-      {% for link in block_settings.menu.links %}
-        <li
-          role="presentation"
-          class="menu-list__list-item"
-          on:focus="/activate"
-          on:blur="/deactivate"
-          on:pointerenter="/activate"
-          on:pointerleave="/deactivate"
-        >
-          <a
-            href="{{ link.url }}"
-            data-skip-node-update="true"
-            class="menu-list__link{% if link.active %} menu-list__link--active{% endif %}"
-            {%- if link.links != blank -%}
-              aria-controls="submenu-{{ forloop.index }}"
-              aria-haspopup="true"
-              aria-expanded="false"
-            {%- endif -%}
-            {% if link.current %}
-              aria-current="page"
+      {% assign rendered_collection_index = 0 %}
+      {% if has_named_collection_menu_links == false %}
+        {% assign rendered_collection_handles = '' %}
+        {% for product in collections.all.products limit: 50 %}
+          {% for product_collection in product.collections %}
+            {% unless product_collection.handle == 'all' %}
+              {% assign collection_marker = '|' | append: product_collection.handle | append: '|' %}
+              {% unless rendered_collection_handles contains collection_marker %}
+                {% liquid
+                  assign rendered_collection_handles = rendered_collection_handles | append: collection_marker
+                  assign rendered_collection_index = rendered_collection_index | plus: 1
+                  assign item_id = 'collection-resource-' | append: rendered_collection_index | append: '-' | append: product_collection.handle
+                %}
+                {% render 'header-collection-resource-menu-item',
+                  collection: product_collection,
+                  item_id: item_id,
+                  background_color_classes: background_color_classes,
+                  menu_content_type: menu_content_type,
+                  block_settings: block_settings,
+                  ratio: ratio,
+                  image_border_radius: image_border_radius,
+                  section: section
+                %}
+              {% endunless %}
+            {% endunless %}
+          {% endfor %}
+        {% endfor %}
+        {% if rendered_collection_index == 0 %}
+          {% for link in block_settings.menu.links %}
+            {% if link.type == 'catalog_link' or link.type == 'collections_link' %}
+              {% liquid
+                assign rendered_collection_index = rendered_collection_index | plus: 1
+                assign item_id = 'collection-' | append: rendered_collection_index | append: '-' | append: link.handle
+              %}
+              {% render 'header-collection-menu-item',
+                menu_link: link,
+                item_id: item_id,
+                background_color_classes: background_color_classes,
+                menu_content_type: menu_content_type,
+                block_settings: block_settings,
+                ratio: ratio,
+                image_border_radius: image_border_radius,
+                section: section
+              %}
             {% endif %}
-            ref="menuitem"
-          >
-            <span class="menu-list__link-title">{{- link.title -}}</span>
-          </a>
-          {%- if link.links != blank -%}
-            <div class="menu-list__submenu{{ background_color_classes }}" ref="submenu[]">
-              <div
-                id="submenu-{{ forloop.index }}"
-                class="menu-list__submenu-inner"
-                style="{% render 'submenu-font-styles', settings: block_settings %}"
-              >
-                {% assign list_id = 'MegaMenuList-' | append: forloop.index %}
-                <div class="mega-menu section section--full-width-margin section--{{ section.settings.section_width }}">
-                  <div
-                    class="mega-menu__grid"
-                    data-menu-grid-id="{{ list_id }}"
-                  >
-                    {% render 'mega-menu-list',
-                      parent_link: link,
-                      id: list_id,
-                      section: section,
-                      grid_columns_count: 6,
-                      grid_columns_count_tablet: 4,
-                      grid_columns_count_collection_images: 8,
-                      menu_content_type: menu_content_type,
-                      content_aspect_ratio: ratio,
-                      image_border_radius: image_border_radius
-                    %}
-                  </div>
-                </div>
-              </div>
-            </div>
-          {%- endif -%}
-        </li>
-      {% endfor %}
+          {% endfor %}
+        {% endif %}
+      {% else %}
+        {% for link in block_settings.menu.links %}
+        {% liquid
+          assign link_has_collection_children = false
+          for childlink in link.links
+            if link_has_collection_children
+              break
+            endif
+
+            if childlink.type == 'collection_link'
+              assign link_has_collection_children = true
+            endif
+
+            for grandchildlink in childlink.links
+              if grandchildlink.type == 'collection_link'
+                assign link_has_collection_children = true
+                break
+              endif
+            endfor
+          endfor
+        %}
+
+        {% if link_has_collection_children %}
+          {% for childlink in link.links %}
+            {% if childlink.type == 'collection_link' %}
+              {% liquid
+                assign rendered_collection_index = rendered_collection_index | plus: 1
+                assign item_id = 'collection-' | append: rendered_collection_index | append: '-' | append: childlink.handle
+              %}
+              {% render 'header-collection-menu-item',
+                menu_link: childlink,
+                item_id: item_id,
+                background_color_classes: background_color_classes,
+                menu_content_type: menu_content_type,
+                block_settings: block_settings,
+                ratio: ratio,
+                image_border_radius: image_border_radius,
+                section: section
+              %}
+            {% else %}
+              {% for grandchildlink in childlink.links %}
+                {% if grandchildlink.type == 'collection_link' %}
+                  {% liquid
+                    assign rendered_collection_index = rendered_collection_index | plus: 1
+                    assign item_id = 'collection-' | append: rendered_collection_index | append: '-' | append: grandchildlink.handle
+                  %}
+                  {% render 'header-collection-menu-item',
+                    menu_link: grandchildlink,
+                    item_id: item_id,
+                    background_color_classes: background_color_classes,
+                    menu_content_type: menu_content_type,
+                    block_settings: block_settings,
+                    ratio: ratio,
+                    image_border_radius: image_border_radius,
+                    section: section
+                  %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+        {% elsif link.type == 'collection_link' %}
+          {% liquid
+            assign rendered_collection_index = rendered_collection_index | plus: 1
+            assign item_id = 'collection-' | append: rendered_collection_index | append: '-' | append: link.handle
+          %}
+          {% render 'header-collection-menu-item',
+            menu_link: link,
+            item_id: item_id,
+            background_color_classes: background_color_classes,
+            menu_content_type: menu_content_type,
+            block_settings: block_settings,
+            ratio: ratio,
+            image_border_radius: image_border_radius,
+            section: section
+          %}
+        {% elsif has_named_collection_menu_links == false %}
+          {% liquid
+            assign is_catalog_fallback = false
+            if link.type == 'catalog_link'
+              assign is_catalog_fallback = true
+            elsif link.type == 'collections_link'
+              assign is_catalog_fallback = true
+            endif
+          %}
+          {% if is_catalog_fallback %}
+            {% liquid
+              assign rendered_collection_index = rendered_collection_index | plus: 1
+              assign item_id = 'collection-' | append: rendered_collection_index | append: '-' | append: link.handle
+            %}
+            {% render 'header-collection-menu-item',
+              menu_link: link,
+              item_id: item_id,
+              background_color_classes: background_color_classes,
+              menu_content_type: menu_content_type,
+              block_settings: block_settings,
+              ratio: ratio,
+              image_border_radius: image_border_radius,
+              section: section
+            %}
+          {% endif %}
+        {% endif %}
+        {% endfor %}
+      {% endif %}
       <li
         class="menu-list__list-item"
         role="presentation"
@@ -301,20 +526,6 @@
     height: 100%;
     margin-block: 0;
 
-    &::after {
-      content: '';
-      position: absolute;
-      display: none;
-      top: var(--header-padding);
-      height: var(--box-height);
-      left: 0;
-      right: 0;
-    }
-
-    &[data-safety-box='true']::after {
-      display: block;
-    }
-
     &:hover,
     &:focus {
       color: var(--menu-top-level-font-color);
@@ -424,8 +635,6 @@
   .menu-list__list-item:has([aria-expanded='true']) > .menu-list__submenu,
   /* Show the overflow menu when a menu item is hovered */
   .overflow-menu:has([slot="overflow"] [aria-expanded='true'])::part(overflow-list),
-  /* Keep the submenus open when they are hovered */
-  .menu-list__submenu:is(:hover),
   .overflow-menu::part(overflow):hover {
     --submenu-content-opacity: 1;
 

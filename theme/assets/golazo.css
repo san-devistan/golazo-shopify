@@ -1,0 +1,964 @@
+/*
+ * GOLAZO custom styles
+ * Layered on top of base.css (loaded after it in snippets/stylesheets.liquid).
+ * Goal: a clean black-on-white football-jersey storefront — Oswald display type,
+ * Inter body, light-grey product panels, squared controls, centred uppercase nav.
+ *
+ * Selectors are kept specific so they win regardless of stylesheet order, and
+ * scoped so they only touch the intended components.
+ */
+
+:root {
+  /* Cool light-grey panel behind product imagery (≈ reference #e7ebed) */
+  --golazo-media-bg: #edf0f2;
+  /* Light-grey fill for controls (quantity stepper, unselected size buttons) */
+  --golazo-control-bg: #eef1f3;
+  --golazo-muted: rgb(0 0 0 / 0.55);
+  --golazo-hairline: rgb(0 0 0 / 0.14);
+  --golazo-header-action-size: 34px;
+  --golazo-header-icon-size: 20px;
+  --golazo-header-search-height: 38px;
+  --golazo-header-icon-gap: 4px;
+  --golazo-header-search-gap: 32px;
+  /* Unified collection heading size — shared by the home featured section
+     and the collection page (between the two previous sizes) */
+  --golazo-feature-heading: clamp(2.25rem, 4vw, 3rem);
+}
+
+/* ------------------------------------------------------------------ */
+/* Squared corners — safety net in case settings_data.json is regen'd  */
+/* ------------------------------------------------------------------ */
+.button,
+.button-secondary,
+.button-custom,
+input:not([type='checkbox']):not([type='radio']),
+textarea,
+select,
+.add-to-cart-button,
+.variant-option__button-label,
+.quantity-selector {
+  border-radius: 0 !important;
+}
+
+/* ------------------------------------------------------------------ */
+/* Logo — heavy condensed Oswald wordmark                              */
+/* ------------------------------------------------------------------ */
+.header .header-logo {
+  font-family: var(--font-heading--family);
+  font-weight: 900;
+  font-size: 2rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.header .header__columns {
+  align-items: center;
+  min-height: 68px;
+  grid-gap: clamp(16px, 2.2vw, 32px);
+}
+
+.header .header__column {
+  min-width: 0;
+}
+
+.header .header__column--center {
+  justify-content: center;
+}
+
+.header .header-menu,
+.header .header-menu__inner {
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Primary navigation — centred, uppercase, underlined active item     */
+/* (centring + uppercase + Oswald come from header-group.json)         */
+/* ------------------------------------------------------------------ */
+.menu-list__link {
+  position: relative;
+  letter-spacing: 0.04em;
+}
+
+.menu-list__link-title {
+  position: relative;
+  display: inline-block;
+  padding-inline: clamp(10px, 1.15vw, 18px);
+}
+
+.menu-list__link-title::after {
+  content: '';
+  position: absolute;
+  left: clamp(10px, 1.15vw, 18px);
+  right: clamp(10px, 1.15vw, 18px);
+  bottom: -0.35em;
+  height: 1px;
+  background: currentcolor;
+  opacity: 0;
+  transform: scaleX(0.65);
+  transform-origin: center;
+  transition: opacity var(--animation-speed) var(--animation-easing),
+    transform var(--animation-speed) var(--animation-easing);
+}
+
+.menu-list__link:hover .menu-list__link-title::after,
+.menu-list__link:focus-visible .menu-list__link-title::after,
+.menu-list__link[aria-expanded='true'] .menu-list__link-title::after,
+.menu-list__link--active .menu-list__link-title::after,
+.menu-list__list-item:has([aria-current='page']) .menu-list__link-title::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.menu-list__link--active .menu-list__link-title,
+.menu-list__list-item:has([aria-current='page']) .menu-list__link-title {
+  text-decoration: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Header actions cluster                                              */
+/* ------------------------------------------------------------------ */
+.header__column--right {
+  align-items: center;
+  overflow: visible;
+}
+
+.header-actions,
+.header__column--right header-actions {
+  align-items: center;
+  gap: var(--golazo-header-icon-gap);
+  margin-inline-start: 0;
+  overflow: visible;
+}
+
+.header-actions__action {
+  min-width: var(--golazo-header-action-size);
+  min-height: var(--golazo-header-action-size);
+  padding: 0;
+  align-items: center;
+  box-sizing: border-box;
+  line-height: 1;
+}
+
+/* Search rendered as a placeholder "pill" rather than a bare icon */
+@media screen and (min-width: 990px) {
+  #header-component .header__column--right .search-action {
+    height: var(--golazo-header-search-height);
+    margin-inline: 0 var(--golazo-header-search-gap);
+  }
+
+  #header-component .header__column--right .search-action > button.header-actions__action {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    width: clamp(190px, 14vw, 220px);
+    height: var(--golazo-header-search-height);
+    min-height: var(--golazo-header-search-height);
+    padding: 0 14px;
+    border: 1px solid var(--golazo-hairline);
+    background: var(--color-background);
+    color: var(--golazo-muted);
+  }
+
+  #header-component .header__column--right .search-action > button.header-actions__action .svg-wrapper {
+    width: 18px;
+    height: 18px;
+  }
+
+  #header-component .header__column--right .search-action > button.header-actions__action svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  #header-component .header__column--right .search-action > button.header-actions__action::after {
+    content: 'Search products';
+    font-family: var(--font-body--family);
+    font-size: 0.875rem;
+    line-height: 1;
+  }
+}
+
+/* Localization "EN / USD" trigger */
+.dropdown-localization__button.localization-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body--family);
+  font-size: 0.8125rem;
+}
+
+.dropdown-localization__button .golazo-globe svg {
+  width: 17px;
+  height: 17px;
+}
+
+.account-button.header-actions__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--golazo-header-action-size);
+  height: var(--golazo-header-action-size);
+  background: transparent;
+  color: var(--color-foreground);
+}
+
+.account-button.header-actions__action shopify-account,
+.account-button.header-actions__action shopify-account:not(:defined) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: auto;
+  width: var(--golazo-header-action-size);
+  height: var(--golazo-header-action-size);
+  color: var(--color-foreground);
+}
+
+.account-button.header-actions__action .account-button__icon {
+  color: var(--color-foreground);
+  --color-account-icon: var(--color-foreground);
+  width: var(--golazo-header-icon-size);
+  height: var(--golazo-header-icon-size);
+}
+
+/* Wishlist heart added to the header actions */
+.header-actions__action.golazo-wishlist {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--golazo-header-action-size);
+  height: var(--golazo-header-action-size);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-foreground);
+  font: inherit;
+}
+
+.header-actions__action.golazo-wishlist .golazo-heart--outline {
+  fill: none;
+}
+
+.header-actions__action.golazo-wishlist .golazo-heart--outline path {
+  stroke-width: var(--icon-stroke-width);
+  vector-effect: non-scaling-stroke;
+}
+
+.header-actions__cart-wrapper {
+  display: inline-flex;
+  align-items: center;
+  overflow: visible;
+}
+
+.header-actions__cart-wrapper > .header-actions__action,
+.header-actions__action.action__cart {
+  width: var(--golazo-header-action-size);
+  height: var(--golazo-header-action-size);
+  overflow: visible;
+}
+
+.header-actions__cart-wrapper > .header-actions__action .svg-wrapper,
+.header-actions__action.golazo-wishlist .svg-wrapper,
+.header-actions__action.action__cart .svg-wrapper {
+  width: var(--golazo-header-action-size);
+  height: var(--golazo-header-action-size);
+}
+
+.header-actions__cart-wrapper > .header-actions__action svg,
+.header-actions__action.golazo-wishlist svg,
+.header-actions__action.action__cart svg {
+  width: var(--golazo-header-icon-size);
+  height: var(--golazo-header-icon-size);
+}
+
+.header-actions__action.golazo-wishlist .svg-wrapper svg.golazo-heart {
+  width: var(--golazo-header-icon-size);
+  height: var(--golazo-header-icon-size);
+}
+
+.header-actions__cart-icon {
+  --cart-bubble-size: 18px;
+  --cart-bubble-top: -1px;
+  --cart-bubble-right: -1px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--golazo-header-action-size);
+  min-height: var(--golazo-header-action-size);
+  overflow: visible;
+}
+
+.header-actions__cart-icon .cart-bubble {
+  min-width: var(--cart-bubble-size);
+  height: var(--cart-bubble-size);
+}
+
+.header-actions__cart-icon .cart-bubble__text {
+  font-size: 0.625rem;
+  line-height: 1;
+}
+
+.menu-list__submenu-inner {
+  border-top: 1px solid var(--golazo-hairline);
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.08);
+}
+
+.mega-menu__list--empty {
+  display: none;
+}
+
+.mega-menu__list--empty + .mega-menu__content {
+  grid-column: 1 / -1;
+}
+
+.mega-menu__list--empty + .mega-menu__content .mega-menu__content-list {
+  justify-content: start;
+}
+
+.mega-menu__content-list--products {
+  direction: ltr;
+  justify-content: start;
+}
+
+.mega-menu__grid--collection-products .mega-menu__content-list--products {
+  grid-template-columns: repeat(var(--menu-content-columns-tablet), minmax(0, 180px));
+  justify-content: start;
+}
+
+@media screen and (min-width: 990px) {
+  .mega-menu__grid--collection-products .mega-menu__content-list--products {
+    grid-template-columns: repeat(var(--menu-content-columns-desktop), minmax(0, 220px));
+  }
+}
+
+.product-card--header-flyout .card-gallery--header-flyout {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--golazo-media-bg);
+}
+
+.product-card--header-flyout {
+  display: block;
+}
+
+.product-card--header-flyout .product-card__content {
+  outline: 1.5px solid transparent;
+  outline-offset: 0;
+  transition: outline-color var(--animation-speed) var(--animation-easing);
+}
+
+@media (any-pointer: fine) {
+  .product-card--header-flyout:is(:hover, :focus-within) .product-card__content {
+    outline-color: var(--color-foreground);
+  }
+}
+
+.product-card--header-flyout :is(p, .price) {
+  margin: 0;
+}
+
+.product-card--header-flyout .product-media-container {
+  width: 100%;
+}
+
+/* ------------------------------------------------------------------ */
+/* Product cards — grey panel, heart, Oswald title, title/price row    */
+/* ------------------------------------------------------------------ */
+.card-gallery,
+.product-card .product-media-container,
+.product-card .product-media {
+  background-color: var(--golazo-media-bg);
+}
+
+/* Wishlist heart floating over the card image */
+.card-gallery {
+  position: relative;
+}
+
+.product-card__wishlist {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-foreground);
+}
+
+.product-card__wishlist svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Bold uppercase Oswald card titles */
+.product-card [ref='productTitleLink'] :is(p, .text-block) {
+  font-family: var(--font-heading--family);
+  font-weight: var(--font-heading--weight, 700);
+  font-size: 0.95rem;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+/* Condensed Oswald prices */
+.product-card product-price .price,
+.product-details product-price .price {
+  font-family: var(--font-heading--family);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* Title (left) + price (right) on one baseline row.
+   The title link is display:contents, so its inner .text-block is the grid item. */
+.product-grid__card.product-grid__card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  column-gap: var(--gap-sm);
+  row-gap: 1.1rem;
+}
+
+.product-grid__card.product-grid__card > .card-gallery,
+.product-grid__card.product-grid__card > .product-grid-view-zoom-out--details {
+  grid-column: 1 / -1;
+}
+
+.product-grid__card.product-grid__card > a[ref='productTitleLink'] > .text-block {
+  grid-column: 1;
+  justify-self: start;
+  align-self: baseline;
+  margin-inline-start: var(--padding-md);
+  margin-block-end: var(--padding-md);
+}
+
+.product-grid__card.product-grid__card > product-price {
+  grid-column: 2;
+  justify-self: end;
+  align-self: baseline;
+  margin-inline-end: var(--padding-md);
+  margin-block-end: var(--padding-md);
+}
+
+/* Keep the grid-density "zoom-out" view in its original stacked flex layout */
+ul[product-grid-view='zoom-out'] .product-grid__card.product-grid__card {
+  display: flex;
+}
+
+/* Force a clean 4-up grid on desktop (beats the inline auto-fill rule) */
+@media screen and (min-width: 750px) {
+  .product-grid.product-grid--grid:not([product-grid-view='zoom-out']) {
+    --product-grid-columns-desktop: repeat(4, 1fr);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Collection heading                                                  */
+/* ------------------------------------------------------------------ */
+.shopify-section:has(> .section) .text-block.h1 > * {
+  line-height: 0.95;
+}
+
+/* ------------------------------------------------------------------ */
+/* Collection header — breadcrumb left, big title right (one row)      */
+/* ------------------------------------------------------------------ */
+.golazo-collection-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--gap-lg) var(--gap-2xl);
+  padding-block: var(--padding-xl) var(--padding-xl);
+}
+
+.golazo-collection-head .golazo-breadcrumb {
+  padding-block: 0;
+}
+
+.golazo-collection-title {
+  margin: 0;
+  font-family: var(--font-heading--family);
+  font-weight: var(--font-heading--weight, 700);
+  text-transform: uppercase;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  font-size: var(--golazo-feature-heading);
+  text-align: right;
+}
+
+@media screen and (max-width: 749px) {
+  .golazo-collection-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .golazo-collection-title {
+    text-align: left;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Breadcrumb (collection + product)                                   */
+/* ------------------------------------------------------------------ */
+.golazo-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-family: var(--font-body--family);
+  font-size: 0.8125rem;
+  color: var(--golazo-muted);
+  padding-block: var(--padding-md) 0;
+}
+
+.golazo-breadcrumb a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.golazo-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.golazo-breadcrumb__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-end: 8px;
+  color: var(--color-foreground);
+}
+
+.golazo-breadcrumb__sep {
+  opacity: 0.5;
+}
+
+.golazo-breadcrumb__current {
+  color: var(--color-foreground);
+}
+
+/* On the product page the breadcrumb aligns with the page content column */
+.product-information > .golazo-breadcrumb {
+  grid-column: 1 / -1;
+  padding-inline: var(--page-margin);
+  padding-block-end: var(--padding-lg);
+}
+
+@media screen and (min-width: 750px) {
+  .product-information > .golazo-breadcrumb {
+    grid-column: 2;
+    padding-inline: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Product detail page                                                 */
+/* ------------------------------------------------------------------ */
+/* Grey panel behind the main image + thumbnails */
+.product-information__media .product-media-container,
+.product-information__media .product-media,
+.product-information__media .media-gallery__thumbnail {
+  background-color: var(--golazo-media-bg);
+}
+
+/* Unselected size buttons as light-grey squares */
+.product-details .variant-option--buttons .variant-option__button-label {
+  background-color: var(--golazo-control-bg);
+  border-color: transparent;
+}
+
+/* Light-grey quantity stepper */
+.product-details .quantity-selector {
+  background-color: var(--golazo-control-bg);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.product-details .quantity-selector input,
+.product-details .quantity-selector .quantity-minus,
+.product-details .quantity-selector .quantity-plus {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Square wishlist button beside Add to cart */
+.product-form-buttons button.golazo-wishlist {
+  flex: 0 0 var(--height-buy-buttons);
+  width: var(--height-buy-buttons);
+  height: var(--height-buy-buttons);
+  min-width: var(--height-buy-buttons);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--color-foreground);
+  border: 1px solid var(--color-foreground);
+}
+
+.product-form-buttons button.golazo-wishlist svg {
+  width: 20px;
+  height: 20px;
+}
+
+.product-form-buttons button.golazo-wishlist:hover {
+  background: var(--color-foreground);
+  color: var(--color-background);
+}
+
+/* Trust signals under the buy buttons */
+.golazo-trust {
+  list-style: none;
+  margin: var(--margin-lg) 0 0;
+  padding: var(--padding-lg) 0 0;
+  border-top: 1px solid var(--golazo-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+  font-family: var(--font-body--family);
+  font-size: var(--font-size--sm);
+  color: var(--golazo-muted);
+}
+
+.golazo-trust__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.golazo-trust__item .svg-wrapper svg {
+  width: 17px;
+  height: 17px;
+  color: var(--color-foreground);
+}
+
+/* ================================================================== */
+/* Premium polish — motion, hover, focus, rhythm                       */
+/* ================================================================== */
+
+/* Smooth, consistent interactions on key controls */
+.button,
+.button-secondary,
+.add-to-cart-button,
+.variant-option__button-label,
+.product-card__wishlist,
+.golazo-wishlist,
+.header-actions__action,
+.menu-list__link,
+.product-media__image {
+  transition: color var(--animation-speed) var(--animation-easing),
+    background-color var(--animation-speed) var(--animation-easing),
+    border-color var(--animation-speed) var(--animation-easing),
+    transform var(--animation-speed-slow) var(--ease-out-quad),
+    box-shadow var(--animation-speed-slow) var(--ease-out-quad),
+    opacity var(--animation-speed) var(--animation-easing);
+}
+
+/* Primary button: subtle lift + shadow on hover */
+.add-to-cart-button.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.16);
+}
+
+.add-to-cart-button.button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Size buttons: darken border on hover for a tactile feel */
+.product-details .variant-option--buttons .variant-option__button-label:hover {
+  background-color: rgb(0 0 0 / 0.08);
+}
+
+/* Card image zoom is handled by the built-in subtle-zoom hover effect.
+   Add a gentle reveal + fill for the wishlist heart. */
+.product-card__wishlist {
+  opacity: 0.65;
+}
+
+.product-card:hover .product-card__wishlist {
+  opacity: 1;
+}
+
+.product-card__wishlist:hover {
+  transform: scale(1.12);
+  opacity: 1;
+}
+
+.header-actions__action.golazo-wishlist:hover,
+.header-actions__action:hover {
+  opacity: 0.65;
+}
+
+/* Keep the gallery panel clipping the zoomed image */
+.card-gallery {
+  overflow: hidden;
+}
+
+/* Crisp, accessible focus ring */
+a:focus-visible,
+button:focus-visible,
+.button:focus-visible,
+.variant-option__button-label:focus-within,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-foreground);
+  outline-offset: 2px;
+}
+
+/* Roomier product-detail rhythm for a premium feel */
+@media screen and (min-width: 750px) {
+  .product-details {
+    gap: var(--gap-2xl);
+  }
+}
+
+/* Slightly larger, confident PDP price */
+.product-details .group-block product-price .price {
+  font-size: var(--font-size--xl);
+}
+
+/* Section heading rhythm */
+.shopify-section:has(> .section) .text-block.h1 > * {
+  margin-block: 0;
+}
+
+/* ================================================================== */
+/* Home page — hero                                                    */
+/* ================================================================== */
+.golazo-hero__inner {
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding-inline: var(--page-margin);
+  padding-block: var(--golazo-hero-pt, 56px) var(--golazo-hero-pb, 56px);
+  display: grid;
+  gap: var(--gap-2xl);
+  align-items: center;
+}
+
+@media screen and (min-width: 750px) {
+  .golazo-hero__inner {
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: var(--gap-3xl);
+  }
+}
+
+.golazo-hero__eyebrow {
+  margin: 0 0 0.9rem;
+  font-family: var(--font-body--family);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--golazo-muted);
+}
+
+.golazo-hero__title {
+  margin: 0;
+  font-family: var(--font-heading--family);
+  font-weight: var(--font-heading--weight, 700);
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+  line-height: 0.9;
+  font-size: clamp(2.75rem, 7vw, 5.5rem);
+}
+
+.golazo-hero__sub {
+  margin: 1.1rem 0 1.9rem;
+  max-width: 42ch;
+  font-family: var(--font-body--family);
+  font-size: var(--font-size--lg);
+  line-height: 1.5;
+  color: var(--golazo-muted);
+}
+
+.golazo-hero__cta.button {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding-inline: var(--padding-2xl);
+}
+
+.golazo-hero__media {
+  background-color: var(--golazo-media-bg);
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+
+.golazo-hero__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media screen and (max-width: 749px) {
+  .golazo-hero__media {
+    aspect-ratio: 16 / 13;
+  }
+}
+
+/* ================================================================== */
+/* Home page — value props / trust band                               */
+/* ================================================================== */
+.golazo-valueprops {
+  border-block: 1px solid var(--golazo-hairline);
+}
+
+.golazo-valueprops__inner {
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding-inline: var(--page-margin);
+  padding-block: var(--golazo-vp-pt, 28px) var(--golazo-vp-pb, 28px);
+  display: grid;
+  gap: var(--gap-xl);
+  grid-template-columns: 1fr;
+}
+
+@media screen and (min-width: 600px) {
+  .golazo-valueprops__inner {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media screen and (min-width: 990px) {
+  .golazo-valueprops__inner {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.golazo-valueprops__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.golazo-valueprops__icon svg {
+  width: 24px;
+  height: 24px;
+  color: var(--color-foreground);
+}
+
+.golazo-valueprops__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.golazo-valueprops__title {
+  margin: 0;
+  font-family: var(--font-heading--family);
+  font-weight: var(--font-heading--weight, 700);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 0.95rem;
+}
+
+.golazo-valueprops__text {
+  margin: 0;
+  font-family: var(--font-body--family);
+  font-size: var(--font-size--sm);
+  color: var(--golazo-muted);
+}
+
+/* ================================================================== */
+/* Iteration tweaks                                                    */
+/* ================================================================== */
+
+/* Home featured collection heading — unified size + tight tracking + arrow */
+.section-resource-list__header .text-block.h3 > * {
+  font-size: var(--golazo-feature-heading);
+  letter-spacing: -0.02em;
+  line-height: 0.92;
+}
+
+.section-resource-list__header .text-block.h3 a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
+.section-resource-list__header .text-block.h3 a:hover {
+  text-decoration-color: currentcolor;
+}
+
+/* Tighter letter tracking on the big hero title too */
+.golazo-hero__title {
+  letter-spacing: -0.02em;
+}
+
+/* Black border on product card hover (outline avoids layout shift) */
+.product-card {
+  outline: 1.5px solid transparent;
+  outline-offset: 0;
+  transition: outline-color var(--animation-speed) var(--animation-easing);
+}
+
+@media (any-pointer: fine) {
+  .product-card:hover {
+    outline-color: var(--color-foreground);
+  }
+}
+
+/* Working wishlist heart — outline by default, filled red when liked */
+.golazo-heart--solid {
+  display: none;
+}
+
+.is-liked .golazo-heart--outline {
+  display: none;
+}
+
+.is-liked .golazo-heart--solid {
+  display: block;
+  color: #e2231a;
+}
+
+/* ------------------------------------------------------------------ */
+/* Product page buy buttons — quantity stacked, actions on one row     */
+/* ------------------------------------------------------------------ */
+.product-details .product-form-buttons {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: var(--gap-sm);
+}
+
+.product-details .product-form-buttons > * {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+/* Compact, left-aligned quantity stepper on its own row */
+.product-details .product-form-buttons .quantity-selector-wrapper {
+  width: auto;
+}
+
+.product-details .golazo-qty-label {
+  width: 100%;
+  margin-block-end: 0;
+  font-size: var(--font-size--sm);
+}
+
+/* Product page purchase action */
+.product-details .golazo-actions-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: var(--gap-sm);
+  width: 100%;
+  margin-block-start: var(--gap-lg);
+}
+
+.product-details .golazo-actions-row > * {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}

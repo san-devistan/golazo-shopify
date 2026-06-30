@@ -264,12 +264,6 @@
                     "custom_button_border": "{{ settings.color_palette.background }}"
                   },
                   "blocks": {}
-                },
-                "accelerated-checkout": {
-                  "type": "accelerated-checkout",
-                  "static": true,
-                  "settings": {},
-                  "blocks": {}
                 }
               },
               "block_order": []

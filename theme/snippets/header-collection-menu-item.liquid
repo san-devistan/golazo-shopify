@@ -1,0 +1,88 @@
+{%- doc -%}
+  Renders a flattened collection link in the desktop header menu.
+
+  @param {object} menu_link - The collection link to render.
+  @param {string} item_id - Unique suffix for submenu IDs.
+  @param {string} background_color_classes - Submenu color classes.
+  @param {string} menu_content_type - Mega menu content type.
+  @param {object} block_settings - Header menu block settings.
+  @param {string} ratio - Product or collection image ratio.
+  @param {number} image_border_radius - Image corner radius.
+  @param {object} section - The section object.
+
+  @example
+  {% render 'header-collection-menu-item', menu_link: link, item_id: 'collection-1' %}
+{%- enddoc -%}
+
+{% liquid
+  assign has_product_flyout = false
+  if menu_content_type == 'featured_products'
+    if menu_link.type == 'collection_link'
+      assign has_product_flyout = true
+    elsif menu_link.type == 'catalog_link'
+      assign has_product_flyout = true
+    elsif menu_link.type == 'collections_link'
+      assign has_product_flyout = true
+    endif
+  endif
+
+  assign has_submenu = false
+  if menu_link.links != blank or has_product_flyout
+    assign has_submenu = true
+  endif
+%}
+
+<li
+  role="presentation"
+  class="menu-list__list-item"
+  on:focus="/activate"
+  on:blur="/deactivate"
+  on:pointerenter="/activate"
+  on:pointerleave="/deactivate"
+>
+  <a
+    href="{{ menu_link.url }}"
+    data-skip-node-update="true"
+    class="menu-list__link{% if menu_link.active %} menu-list__link--active{% endif %}"
+    {%- if has_submenu -%}
+      aria-controls="submenu-{{ item_id }}"
+      aria-haspopup="true"
+      aria-expanded="false"
+    {%- endif -%}
+    {% if menu_link.current %}
+      aria-current="page"
+    {% endif %}
+    ref="menuitem"
+  >
+    <span class="menu-list__link-title">{{- menu_link.title -}}</span>
+  </a>
+  {%- if has_submenu -%}
+    <div class="menu-list__submenu{{ background_color_classes }}" ref="submenu[]">
+      <div
+        id="submenu-{{ item_id }}"
+        class="menu-list__submenu-inner"
+        style="{% render 'submenu-font-styles', settings: block_settings %}"
+      >
+        {% assign list_id = 'MegaMenuList-' | append: item_id %}
+        <div class="mega-menu section section--full-width-margin section--{{ section.settings.section_width }}">
+          <div
+            class="mega-menu__grid"
+            data-menu-grid-id="{{ list_id }}"
+          >
+            {% render 'mega-menu-list',
+              parent_link: menu_link,
+              id: list_id,
+              section: section,
+              grid_columns_count: 6,
+              grid_columns_count_tablet: 4,
+              grid_columns_count_collection_images: 8,
+              menu_content_type: menu_content_type,
+              content_aspect_ratio: ratio,
+              image_border_radius: image_border_radius
+            %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+</li>

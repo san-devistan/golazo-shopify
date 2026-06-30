@@ -137,6 +137,8 @@
 
     {% render 'search-modal' %}
 
+    <script src="{{ 'golazo-wishlist.js' | asset_url }}" defer></script>
+
     {% if settings.quick_add or settings.mobile_quick_add %}
       {% render 'quick-add-modal' %}
     {% endif %}

@@ -1,0 +1,90 @@
+{%- liquid
+  assign vp_pt = section.settings['padding-block-start'] | default: 28
+  assign vp_pb = section.settings['padding-block-end'] | default: 28
+-%}
+<div class="golazo-valueprops" style="--golazo-vp-pt: {{ vp_pt }}px; --golazo-vp-pb: {{ vp_pb }}px;">
+  <div class="golazo-valueprops__inner">
+    {%- for block in section.blocks -%}
+      <div class="golazo-valueprops__item" {{ block.shopify_attributes }}>
+        <span class="golazo-valueprops__icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" focusable="false">
+            {% render 'icon', icon: block.settings.icon %}
+          </svg>
+        </span>
+        <div class="golazo-valueprops__copy">
+          {%- if block.settings.title != blank -%}
+            <p class="golazo-valueprops__title">{{ block.settings.title }}</p>
+          {%- endif -%}
+          {%- if block.settings.text != blank -%}
+            <p class="golazo-valueprops__text">{{ block.settings.text }}</p>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "GOLAZO value props",
+  "tag": "section",
+  "max_blocks": 4,
+  "blocks": [
+    {
+      "type": "value_prop",
+      "name": "Value prop",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "check_box", "label": "Check" },
+            { "value": "box", "label": "Box / shipping" },
+            { "value": "return", "label": "Return" },
+            { "value": "lock", "label": "Lock / secure" },
+            { "value": "price_tag", "label": "Price tag" },
+            { "value": "recycle", "label": "Recycle" },
+            { "value": "map_pin", "label": "Map pin" }
+          ],
+          "default": "check_box"
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Value prop" },
+        { "type": "text", "id": "text", "label": "Text", "default": "Short supporting detail." }
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top padding",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 28
+    }
+  ],
+  "presets": [
+    {
+      "name": "GOLAZO value props",
+      "blocks": [
+        { "type": "value_prop", "settings": { "icon": "box", "title": "Free shipping over $150", "text": "Fast, tracked delivery worldwide." } },
+        { "type": "value_prop", "settings": { "icon": "return", "title": "30-day returns", "text": "Easy, no-hassle exchanges." } },
+        { "type": "value_prop", "settings": { "icon": "lock", "title": "Secure checkout", "text": "Protected payments, every order." } }
+      ]
+    }
+  ]
+}
+{% endschema %}
