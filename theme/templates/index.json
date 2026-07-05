@@ -13,9 +13,12 @@
       "settings": {
         "eyebrow": "2026 World Cup Collection",
         "heading": "World Cup 26",
-        "subheading": "Authentic national-team jerseys. Engineered for the pitch, built for the streets.",
+        "subheading": "Every national kit for 2026 — engineered for the pitch, built for the streets.",
         "button_label": "Shop the collection",
+        "button_label_2": "Browse all jerseys",
         "collection": "frontpage",
+        "products_limit": 0,
+        "speed": 4,
         "padding-block-start": 56,
         "padding-block-end": 56
       }
@@ -175,7 +178,9 @@
         "collection": "frontpage",
         "layout_type": "grid",
         "carousel_on_mobile": false,
-        "max_products": 8,
+        "max_products": 24,
+        "enable_show_more": true,
+        "initial_products": 8,
         "columns": 4,
         "mobile_columns": "2",
         "mobile_card_size": "60cqw",

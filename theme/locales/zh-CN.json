@@ -29,6 +29,9 @@
     "slider_label": "滑块"
   },
   "accessibility": {
+    "add_to_wishlist": "Add {{ product_title }} to wishlist",
+    "remove_from_wishlist": "Remove {{ product_title }} from wishlist",
+    "wishlist": "Wishlist",
     "play_model": "演示 3D 模型",
     "play_video": "播放视频",
     "unit_price": "单价",

@@ -29,6 +29,9 @@
     "slider_label": "Плъзгач"
   },
   "accessibility": {
+    "add_to_wishlist": "Add {{ product_title }} to wishlist",
+    "remove_from_wishlist": "Remove {{ product_title }} from wishlist",
+    "wishlist": "Wishlist",
     "play_model": "Възпроизвеждане на 3D модел",
     "play_video": "Възпроизвеждане на видеоклип",
     "unit_price": "Единична цена",

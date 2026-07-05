@@ -105,6 +105,8 @@
     {% # theme-check-enable UnknownFilter %}
   >
     {% assign render_order_array = render_order | split: ',' %}
+    <h1 class="product-information__mobile-title">{{ product.title }}</h1>
+
     {% capture media %}
       <div
         class="product-information__media"
@@ -131,6 +133,10 @@
     gap: var(--gap) 0;
   }
 
+  .product-information:has(> .golazo-breadcrumb) {
+    gap: 8px 0;
+  }
+
   /* Base grid layout */
   .product-information__grid {
     display: grid;
@@ -154,14 +160,49 @@
     height: 100%;
   }
 
+  .product-information__mobile-title {
+    display: none;
+  }
+
   /* Mobile styles */
-  @media screen and (max-width: 749px) {
+  @media screen and (max-width: 989px) {
+    .product-information:has(> .golazo-breadcrumb) {
+      gap: 8px 0;
+    }
+
+    .product-information__mobile-title {
+      display: block;
+      grid-column: 2 / 3;
+      margin: 0 0 12px;
+      font-family: var(--font-heading--family);
+      font-weight: var(--font-heading--weight, 700);
+      font-size: clamp(2.5rem, 12vw, 4rem);
+      line-height: 0.9;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
     .product-information__media {
       grid-column: 1 / -1;
     }
 
     .product-details {
       grid-column: 2 / 3;
+    }
+
+    .product-information:has(> .golazo-breadcrumb) .product-details > .group-block {
+      padding-block-start: 8px;
+    }
+
+    .product-information:has(> .golazo-breadcrumb) .product-details product-price {
+      --padding-block-start: 0px;
+      padding-block-start: 0;
+    }
+
+    .product-details .view-product-title,
+    .product-details .text-block--text_xrnftG,
+    .product-details .text-block[class*='text_xrnftG'] {
+      display: none;
     }
   }
 

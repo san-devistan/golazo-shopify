@@ -1,0 +1,17 @@
+{% doc %}
+  Renders the store favicon, using the theme setting when present and the GOLAZO fallback otherwise.
+{% enddoc %}
+
+{%- if settings.favicon != blank -%}
+  <link
+    rel="icon"
+    type="image/png"
+    href="{{ settings.favicon | image_url: width: 32, height: 32 }}"
+  >
+{%- else -%}
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="{{ 'favicon-gz.svg' | asset_url }}"
+  >
+{%- endif -%}

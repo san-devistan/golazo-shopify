@@ -19,8 +19,9 @@
     assign has_submenu = true
   endif
 
-  assign max_featured_products = 3
-  assign max_featured_products_tablet = 3
+  assign max_featured_products = 50
+  assign max_featured_product_columns = 4
+  assign max_featured_product_columns_tablet = 3
 %}
 
 <li
@@ -58,20 +59,45 @@
           >
             <span
               class="mega-menu__content"
-              style="--menu-content-columns-desktop: {{ max_featured_products }}; --menu-content-columns-tablet: {{ max_featured_products_tablet }}; --resource-card-corner-radius: {{ image_border_radius }}px;"
+              style="--menu-content-columns-desktop: {{ max_featured_product_columns }}; --menu-content-columns-tablet: {{ max_featured_product_columns_tablet }}; --resource-card-corner-radius: {{ image_border_radius }}px;"
             >
-              <ul class="mega-menu__content-list mega-menu__content-list--products list-unstyled">
-                {% for product in collection.products limit: max_featured_products %}
-                  <li class="mega-menu__content-list-item">
-                    {% assign product_card_id = item_id | append: '-' | append: forloop.index %}
-                    {% render 'header-product-card',
-                      product: product,
-                      card_id: product_card_id,
-                      product_view_context: 'dialog'
-                    %}
-                  </li>
-                {% endfor %}
-              </ul>
+              <div class="mega-menu__product-scroll">
+                <button
+                  type="button"
+                  class="mega-menu__product-scroll-button"
+                  data-mega-menu-scroll="previous"
+                  aria-label="{{ 'accessibility.slideshow_previous' | t }}"
+                  disabled
+                  hidden
+                >
+                  {{ 'icon-chevron-left.svg' | inline_asset_content }}
+                </button>
+                <ul
+                  class="mega-menu__content-list mega-menu__content-list--products list-unstyled"
+                  data-mega-menu-products
+                >
+                  {% paginate collection.products by max_featured_products %}
+                    {% for product in collection.products limit: max_featured_products %}
+                      <li class="mega-menu__content-list-item">
+                        {% assign product_card_id = item_id | append: '-' | append: forloop.index %}
+                        {% render 'header-product-card',
+                          product: product,
+                          card_id: product_card_id,
+                          product_view_context: 'dialog'
+                        %}
+                      </li>
+                    {% endfor %}
+                  {% endpaginate %}
+                </ul>
+                <button
+                  type="button"
+                  class="mega-menu__product-scroll-button"
+                  data-mega-menu-scroll="next"
+                  aria-label="{{ 'accessibility.slideshow_next' | t }}"
+                >
+                  {{ 'icon-chevron-right.svg' | inline_asset_content }}
+                </button>
+              </div>
             </span>
           </div>
         </div>

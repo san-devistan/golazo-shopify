@@ -2,6 +2,19 @@
 
 {% liquid
   assign max_items = section.settings.max_products
+  assign initial_items = section.settings.initial_products | default: max_items
+
+  if initial_items > max_items
+    assign initial_items = max_items
+  endif
+
+  assign show_more_enabled = false
+  if section.settings.enable_show_more and section.settings.layout_type == 'grid'
+    unless section.settings.carousel_on_mobile
+      assign show_more_enabled = true
+    endunless
+  endif
+
   if section.settings.background_color != blank
     render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
   endif
@@ -33,9 +46,12 @@
     {% if section.settings.collection != blank and shop.products_count != 0 %}
       {% paginate section.settings.collection.products by max_items %}
         {% for product in section.settings.collection.products limit: max_items %}
-        <div
-          class="resource-list__item"
-        >
+          <div
+            class="resource-list__item{% if show_more_enabled and forloop.index > initial_items %} product-list__item--hidden{% endif %}"
+            {% if show_more_enabled and forloop.index > initial_items %}
+              data-product-list-hidden
+            {% endif %}
+          >
             {% content_for 'block',
               type: '_product-card',
               id: 'static-product-card',
@@ -52,7 +68,10 @@
     {% else %}
       {% for i in (1..max_items) %}
         <div
-          class="resource-list__item"
+          class="resource-list__item{% if show_more_enabled and forloop.index > initial_items %} product-list__item--hidden{% endif %}"
+          {% if show_more_enabled and forloop.index > initial_items %}
+            data-product-list-hidden
+          {% endif %}
         >
             {% content_for 'block', type: '_product-card', id: 'static-product-card', closest.product: null %}
         </div>
@@ -78,6 +97,19 @@
     test_id: 'resource-list-grid'
   %}
 
+  {% if show_more_enabled and list_items_array.size > initial_items %}
+    <div class="product-list__show-more">
+      <button
+        type="button"
+        class="button product-list__show-more-button"
+        data-product-list-show-more
+        data-step="{{ initial_items }}"
+      >
+        {{ 'actions.show_more' | t }}
+      </button>
+    </div>
+  {% endif %}
+
   <div
     class="section-resource-list__content"
     style="--horizontal-alignment: {{ section.settings.horizontal_alignment }};"
@@ -85,6 +117,63 @@
     {%- content_for 'blocks' -%}
   </div>
 </div>
+
+{% stylesheet %}
+  .product-list__item--hidden {
+    display: none;
+  }
+
+  .product-list__show-more {
+    display: flex;
+    justify-content: center;
+    margin-block-start: 16px;
+  }
+
+  .product-list__show-more-button.product-list__show-more-button {
+    --button-background-color: transparent;
+    --button-border-color: currentColor;
+    --button-border-width: 1px;
+    --button-color: var(--color-foreground);
+    --button-padding-block: 0.55rem;
+    --button-padding-inline: 1rem;
+
+    min-height: 0;
+    font-size: 0.875rem;
+    line-height: 1;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px currentColor;
+  }
+
+  .product-list__show-more-button.product-list__show-more-button:hover {
+    --button-background-color: transparent;
+
+    background: transparent;
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    const button = event.target.closest('[data-product-list-show-more]');
+    if (!button) return;
+
+    const section = button.closest('.section-resource-list');
+    if (!section) return;
+
+    const step = Number.parseInt(button.dataset.step, 10) || 8;
+    const hiddenItems = Array.from(section.querySelectorAll('[data-product-list-hidden]'));
+
+    hiddenItems.slice(0, step).forEach((item) => {
+      item.classList.remove('product-list__item--hidden');
+      item.removeAttribute('data-product-list-hidden');
+    });
+
+    if (!section.querySelector('[data-product-list-hidden]')) {
+      button.closest('.product-list__show-more')?.remove();
+    }
+  });
+{% endjavascript %}
 
 {% schema %}
 {
@@ -142,9 +231,26 @@
       "id": "max_products",
       "label": "t:settings.product_count",
       "min": 1,
-      "max": 16,
+      "max": 50,
       "step": 1,
       "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_show_more",
+      "label": "Show more button",
+      "default": false,
+      "visible_if": "{{ section.settings.layout_type == 'grid' and section.settings.carousel_on_mobile == false }}"
+    },
+    {
+      "type": "range",
+      "id": "initial_products",
+      "label": "Initially visible products",
+      "min": 1,
+      "max": 16,
+      "step": 1,
+      "default": 8,
+      "visible_if": "{{ section.settings.enable_show_more and section.settings.layout_type == 'grid' and section.settings.carousel_on_mobile == false }}"
     },
     {
       "type": "range",

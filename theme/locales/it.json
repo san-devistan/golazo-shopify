@@ -29,6 +29,9 @@
     "slider_label": "Cursore"
   },
   "accessibility": {
+    "add_to_wishlist": "Add {{ product_title }} to wishlist",
+    "remove_from_wishlist": "Remove {{ product_title }} from wishlist",
+    "wishlist": "Wishlist",
     "play_model": "Riproduci modello 3D",
     "play_video": "Riproduci video",
     "unit_price": "Prezzo unitario",

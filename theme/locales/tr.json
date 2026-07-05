@@ -29,6 +29,9 @@
     "slider_label": "Kaydırıcı"
   },
   "accessibility": {
+    "add_to_wishlist": "Add {{ product_title }} to wishlist",
+    "remove_from_wishlist": "Remove {{ product_title }} from wishlist",
+    "wishlist": "Wishlist",
     "play_model": "3B modeli oynat",
     "play_video": "Videoyu oynat",
     "unit_price": "Birim fiyatı",

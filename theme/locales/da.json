@@ -29,6 +29,9 @@
     "slider_label": "Billedkarrusel"
   },
   "accessibility": {
+    "add_to_wishlist": "Add {{ product_title }} to wishlist",
+    "remove_from_wishlist": "Remove {{ product_title }} from wishlist",
+    "wishlist": "Wishlist",
     "play_model": "Afspil 3D-model",
     "play_video": "Afspil video",
     "unit_price": "Stykpris",

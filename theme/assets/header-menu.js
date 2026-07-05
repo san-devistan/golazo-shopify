@@ -37,12 +37,21 @@ class HeaderMenu extends Component {
     onDocumentLoaded(this.#preloadImages);
     window.addEventListener('resize', this.#resizeListener);
     this.overflowMenu?.addEventListener('pointerleave', this.#overflowSubmenuListener);
+    this.addEventListener('pointerdown', this.#productScrollPointerDown, { capture: true });
+    this.addEventListener('click', this.#productScrollClick, { capture: true });
+    this.addEventListener('pointerover', this.#productScrollUpdateFromEvent);
+    this.addEventListener('focusin', this.#productScrollUpdateFromEvent);
+    requestAnimationFrame(this.#updateProductScrollers);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     window.removeEventListener('resize', this.#resizeListener);
     this.overflowMenu?.removeEventListener('pointerleave', this.#overflowSubmenuListener);
+    this.removeEventListener('pointerdown', this.#productScrollPointerDown, { capture: true });
+    this.removeEventListener('click', this.#productScrollClick, { capture: true });
+    this.removeEventListener('pointerover', this.#productScrollUpdateFromEvent);
+    this.removeEventListener('focusin', this.#productScrollUpdateFromEvent);
     this.#cleanupMutationObserver();
     clearTimeout(this.#hoverDispatchTimer);
     this.#hoverDispatchTimer = undefined;
@@ -188,6 +197,120 @@ class HeaderMenu extends Component {
     this.headerComponent.style.setProperty('--submenu-height', `${finalHeight}px`);
     this.#setFullOpenHeaderHeight(finalHeight, headerVisibleHeight);
     this.style.setProperty('--submenu-opacity', '1');
+    requestAnimationFrame(this.#updateProductScrollers);
+  };
+
+  /**
+   * @param {Event} event
+   */
+  #getProductScrollContext(event) {
+    if (!(event.target instanceof Element)) return null;
+
+    const button = event.target.closest('[data-mega-menu-scroll]');
+    if (!(button instanceof HTMLButtonElement)) return null;
+
+    const container = button.closest('.mega-menu__product-scroll');
+    if (!(container instanceof HTMLElement)) return null;
+
+    const list = container.querySelector('[data-mega-menu-products]');
+    if (!(list instanceof HTMLElement)) return null;
+
+    return { button, container, list };
+  }
+
+  /**
+   * @param {HTMLElement} container
+   */
+  #updateProductScroller = (container) => {
+    const list = container.querySelector('[data-mega-menu-products]');
+    const previousButton = container.querySelector('[data-mega-menu-scroll="previous"]');
+    const nextButton = container.querySelector('[data-mega-menu-scroll="next"]');
+
+    if (
+      !(list instanceof HTMLElement) ||
+      !(previousButton instanceof HTMLButtonElement) ||
+      !(nextButton instanceof HTMLButtonElement)
+    ) {
+      return;
+    }
+
+    const maxScroll = Math.max(0, list.scrollWidth - list.clientWidth);
+    const atStart = list.scrollLeft <= 1;
+    const atEnd = list.scrollLeft >= maxScroll - 1;
+    const hasOverflow = maxScroll > 1;
+
+    previousButton.hidden = !hasOverflow || atStart;
+    previousButton.disabled = !hasOverflow || atStart;
+    nextButton.hidden = !hasOverflow || atEnd;
+    nextButton.disabled = !hasOverflow || atEnd;
+
+    if (container.dataset.megaMenuScrollReady === 'true') return;
+
+    list.addEventListener('scroll', () => this.#updateProductScroller(container), { passive: true });
+    container.dataset.megaMenuScrollReady = 'true';
+  };
+
+  #updateProductScrollers = () => {
+    this.querySelectorAll('.mega-menu__product-scroll').forEach((container) => {
+      if (container instanceof HTMLElement) {
+        this.#updateProductScroller(container);
+      }
+    });
+  };
+
+  /**
+   * @param {Event} event
+   */
+  #productScrollUpdateFromEvent = (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    const container =
+      event.target.closest('.mega-menu__product-scroll') ||
+      event.target.closest('.menu-list__list-item')?.querySelector('.mega-menu__product-scroll');
+
+    if (container instanceof HTMLElement) {
+      requestAnimationFrame(() => this.#updateProductScroller(container));
+    }
+  };
+
+  /**
+   * @param {Event} event
+   */
+  #productScrollPointerDown = (event) => {
+    const context = this.#getProductScrollContext(event);
+    if (!context) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  };
+
+  /**
+   * @param {Event} event
+   */
+  #productScrollClick = (event) => {
+    const context = this.#getProductScrollContext(event);
+    if (!context) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    const { button, container, list } = context;
+    const firstItem = list.querySelector('.mega-menu__content-list-item');
+    const styles = getComputedStyle(list);
+    const gap = parseFloat(styles.columnGap || styles.gap || '0') || 0;
+    const measuredItemWidth = firstItem instanceof HTMLElement ? firstItem.getBoundingClientRect().width + gap : 0;
+    const itemWidth = measuredItemWidth > 0 ? measuredItemWidth : list.clientWidth * 0.85;
+    const visibleItems = itemWidth > 0 ? Math.max(1, Math.floor(list.clientWidth / itemWidth)) : 1;
+    const direction = button.dataset.megaMenuScroll === 'next' ? 1 : -1;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    list.scrollBy({
+      left: direction * itemWidth * visibleItems,
+      behavior: reducedMotion ? 'auto' : 'smooth',
+    });
+
+    requestAnimationFrame(() => this.#updateProductScroller(container));
+    setTimeout(() => this.#updateProductScroller(container), 350);
   };
 
   /**

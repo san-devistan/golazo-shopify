@@ -277,6 +277,37 @@ select,
   height: var(--golazo-header-icon-size);
 }
 
+@media screen and (max-width: 749px) {
+  .header .header__columns,
+  #header-component[data-menu-style='drawer'] .header__columns {
+    --golazo-mobile-header-search-width: 32px;
+    --golazo-mobile-header-actions-width: var(--golazo-header-action-size);
+    --header-template-columns: var(--header-mobile-bookend) var(--header-mobile-bookend) minmax(0, 1fr)
+      var(--golazo-mobile-header-search-width) var(--golazo-mobile-header-actions-width);
+    column-gap: 6px;
+  }
+
+  #header-component .header__columns .search-action {
+    justify-self: center;
+    width: var(--golazo-mobile-header-search-width);
+  }
+
+  #header-component .header__columns .search-action > .header-actions__action {
+    min-width: var(--golazo-mobile-header-search-width);
+    width: var(--golazo-mobile-header-search-width);
+  }
+
+  #header-component .header__columns header-actions {
+    justify-self: end;
+    margin-inline-start: 0;
+    width: var(--golazo-mobile-header-actions-width);
+  }
+
+  #header-component .header__columns header-actions > :is(.account-button, .golazo-wishlist) {
+    display: none;
+  }
+}
+
 .header-actions__cart-icon {
   --cart-bubble-size: 18px;
   --cart-bubble-top: -1px;
@@ -322,36 +353,174 @@ select,
   justify-content: start;
 }
 
+/* Card + gap sizing shared by the scroller and the arrow positioning */
+.mega-menu__grid--collection-products {
+  --flyout-card-width: 220px;
+  --flyout-card-gap: 16px;
+
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mega-menu__grid--collection-products .mega-menu__content {
+  grid-column: 1 / -1;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.mega-menu__product-scroll {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Prev/next arrows: circular, state-aware, centred on the image area */
+.mega-menu__product-scroll-button {
+  position: absolute;
+  top: calc(var(--flyout-card-width, 220px) * 0.625 + 2px);
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--golazo-hairline);
+  border-radius: 50%;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.14);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background-color var(--animation-speed) var(--animation-easing),
+    color var(--animation-speed) var(--animation-easing),
+    box-shadow var(--animation-speed) var(--animation-easing);
+}
+
+.mega-menu__product-scroll-button[hidden] {
+  display: none;
+}
+
+.mega-menu__product-scroll-button:disabled {
+  pointer-events: none;
+}
+
+.mega-menu__product-scroll-button:hover {
+  background: var(--color-foreground);
+  color: var(--color-background);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.2);
+}
+
+.mega-menu__product-scroll-button[data-mega-menu-scroll='previous'] {
+  left: 10px;
+}
+
+.mega-menu__product-scroll-button[data-mega-menu-scroll='next'] {
+  right: 10px;
+}
+
+.mega-menu__product-scroll-button svg {
+  width: 18px;
+  height: 18px;
+  fill: currentcolor;
+}
+
 .mega-menu__grid--collection-products .mega-menu__content-list--products {
-  grid-template-columns: repeat(var(--menu-content-columns-tablet), minmax(0, 180px));
+  display: flex;
+  grid-template-columns: none;
   justify-content: start;
+  gap: var(--menu-horizontal-gap, var(--flyout-card-gap, 16px));
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0;
+  scroll-padding-inline: 0;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
-@media screen and (min-width: 990px) {
-  .mega-menu__grid--collection-products .mega-menu__content-list--products {
-    grid-template-columns: repeat(var(--menu-content-columns-desktop), minmax(0, 220px));
-  }
+.mega-menu__grid--collection-products .mega-menu__content-list--products::-webkit-scrollbar {
+  display: none;
 }
 
+.mega-menu__grid--collection-products .mega-menu__content-list-item {
+  flex: 0 0 var(--flyout-card-width, 220px);
+  scroll-snap-align: start;
+}
+
+/* Fixed 4/5 media box + cover so the hover image swap never reflows or
+   leaves white space above the image */
 .product-card--header-flyout .card-gallery--header-flyout {
   position: relative;
+  display: block;
   overflow: hidden;
+  background-color: var(--golazo-media-bg);
+  aspect-ratio: 4 / 5;
+}
+
+.product-card--header-flyout
+  .card-gallery--header-flyout
+  :is(slideshow-component, slideshow-container, slideshow-slides, slideshow-slide, .product-media-container, .product-media) {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   background-color: var(--golazo-media-bg);
 }
 
-.product-card--header-flyout {
+.product-card--header-flyout .card-gallery--header-flyout :is(img, .product-media__image, svg) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-card.product-card--header-flyout {
   display: block;
+  padding-block-start: 0;
+  outline: 0;
 }
 
 .product-card--header-flyout .product-card__content {
-  outline: 1.5px solid transparent;
-  outline-offset: 0;
-  transition: outline-color var(--animation-speed) var(--animation-easing);
+  border: 0;
+  outline: 0;
 }
 
+/* Hover border drawn as an inset shadow — stays inside the card, so it can
+   never be clipped on the sides by the horizontal scroller */
 @media (any-pointer: fine) {
+  .product-card.product-card--header-flyout:hover {
+    outline-color: transparent;
+  }
+
+  .product-card--header-flyout .product-card__content {
+    box-shadow: inset 0 0 0 1.5px transparent;
+    transition: box-shadow var(--animation-speed) var(--animation-easing);
+  }
+
   .product-card--header-flyout:is(:hover, :focus-within) .product-card__content {
-    outline-color: var(--color-foreground);
+    box-shadow: inset 0 0 0 1.5px var(--color-foreground);
+  }
+}
+
+/* The subtle-zoom effect scales the whole gallery, which overflows the card
+   and gets clipped by the scroller. Zoom the image inside the fixed box instead. */
+@media (any-pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .card-hover-effect-subtle-zoom .product-card--header-flyout:hover .card-gallery--header-flyout {
+    transform: none;
+  }
+
+  .product-card--header-flyout .card-gallery--header-flyout :is(img, .product-media__image) {
+    transition: transform 0.5s var(--animation-easing);
+  }
+
+  .product-card--header-flyout:hover .card-gallery--header-flyout :is(img, .product-media__image) {
+    transform: scale(1.04);
   }
 }
 
@@ -417,14 +586,12 @@ select,
   letter-spacing: 0.01em;
 }
 
-/* Title (left) + price (right) on one baseline row.
-   The title link is display:contents, so its inner .text-block is the grid item. */
 .product-grid__card.product-grid__card {
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
-  column-gap: var(--gap-sm);
-  row-gap: 1.1rem;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: center;
+  column-gap: 0.75rem;
+  row-gap: 0.6rem;
 }
 
 .product-grid__card.product-grid__card > .card-gallery,
@@ -434,18 +601,38 @@ select,
 
 .product-grid__card.product-grid__card > a[ref='productTitleLink'] > .text-block {
   grid-column: 1;
-  justify-self: start;
-  align-self: baseline;
-  margin-inline-start: var(--padding-md);
-  margin-block-end: var(--padding-md);
+  justify-self: stretch;
+  align-self: center;
+  min-width: 0;
+  margin-inline-start: 0.5rem;
+  margin-block: 0.5rem;
+  padding-block: 0;
+  padding-inline: 0;
+  text-align: left;
+  overflow-wrap: break-word;
+}
+
+.product-grid__card.product-grid__card > a[ref='productTitleLink'] > .text-block > * {
+  text-align: left;
 }
 
 .product-grid__card.product-grid__card > product-price {
   grid-column: 2;
   justify-self: end;
-  align-self: baseline;
-  margin-inline-end: var(--padding-md);
-  margin-block-end: var(--padding-md);
+  align-self: center;
+  margin-inline-end: 0.5rem;
+  margin-block: 0.5rem;
+  padding-block: 0;
+  padding-inline: 0;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.product-card product-price .price {
+  display: block;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 /* Keep the grid-density "zoom-out" view in its original stacked flex layout */
@@ -494,7 +681,7 @@ ul[product-grid-view='zoom-out'] .product-grid__card.product-grid__card {
   text-align: right;
 }
 
-@media screen and (max-width: 749px) {
+@media screen and (max-width: 989px) {
   .golazo-collection-head {
     flex-direction: column;
     align-items: flex-start;
@@ -502,6 +689,30 @@ ul[product-grid-view='zoom-out'] .product-grid__card.product-grid__card {
 
   .golazo-collection-title {
     text-align: left;
+  }
+
+  main[data-template='collection'] .product-grid-container {
+    box-sizing: border-box;
+    padding-inline: 16px;
+  }
+
+  main[data-template='collection'] .collection-wrapper--full-width-on-mobile .card-gallery {
+    margin-inline: 0;
+  }
+
+  main[data-template='collection'] .collection-wrapper--full-width-on-mobile [product-grid-view='default'] .product-grid__card,
+  main[data-template='collection'] .collection-wrapper--full-width-on-mobile [product-grid-view='mobile-single'] .product-grid__card {
+    padding-inline: 0;
+  }
+
+  .product-grid__card.product-grid__card > a[ref='productTitleLink'] > .text-block {
+    margin-inline-start: 0;
+    margin-block: 0.25rem;
+  }
+
+  .product-grid__card.product-grid__card > product-price {
+    margin-inline-end: 0;
+    margin-block: 0.25rem;
   }
 }
 
@@ -548,7 +759,14 @@ ul[product-grid-view='zoom-out'] .product-grid__card.product-grid__card {
 .product-information > .golazo-breadcrumb {
   grid-column: 1 / -1;
   padding-inline: var(--page-margin);
-  padding-block-end: var(--padding-lg);
+  padding-block-start: var(--padding-sm);
+  padding-block-end: var(--padding-sm);
+}
+
+@media screen and (max-width: 989px) {
+  .product-information > .golazo-breadcrumb {
+    padding-block-end: 4px;
+  }
 }
 
 @media screen and (min-width: 750px) {
@@ -566,6 +784,30 @@ ul[product-grid-view='zoom-out'] .product-grid__card.product-grid__card {
 .product-information__media .product-media,
 .product-information__media .media-gallery__thumbnail {
   background-color: var(--golazo-media-bg);
+}
+
+@media screen and (min-width: 750px) {
+  .product-information__media media-gallery.media-gallery--grid {
+    --golazo-pdp-media-ratio: 0.8;
+    --gallery-aspect-ratio: var(--golazo-pdp-media-ratio);
+  }
+
+  .product-information__media media-gallery.media-gallery--grid .media-gallery__grid .product-media-container {
+    aspect-ratio: var(--golazo-pdp-media-ratio);
+    max-height: none;
+  }
+
+  .product-information__media media-gallery.media-gallery--grid .media-gallery__grid .product-media {
+    aspect-ratio: var(--golazo-pdp-media-ratio);
+    width: 100%;
+    height: 100%;
+  }
+
+  .product-information__media media-gallery.media-gallery--grid .media-gallery__grid .product-media__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 /* Unselected size buttons as light-grey squares */
@@ -731,23 +973,18 @@ select:focus-visible {
 }
 
 /* ================================================================== */
-/* Home page — hero                                                    */
+/* Home page — hero (headline band + scrolling kit wall)               */
 /* ================================================================== */
-.golazo-hero__inner {
+.golazo-hero {
+  padding-block: var(--golazo-hero-pt, 56px) var(--golazo-hero-pb, 56px);
+  overflow: clip;
+}
+
+/* --- Headline band ------------------------------------------------- */
+.golazo-hero__head {
   max-width: var(--page-width);
   margin-inline: auto;
   padding-inline: var(--page-margin);
-  padding-block: var(--golazo-hero-pt, 56px) var(--golazo-hero-pb, 56px);
-  display: grid;
-  gap: var(--gap-2xl);
-  align-items: center;
-}
-
-@media screen and (min-width: 750px) {
-  .golazo-hero__inner {
-    grid-template-columns: 1.05fr 0.95fr;
-    gap: var(--gap-3xl);
-  }
 }
 
 .golazo-hero__eyebrow {
@@ -764,18 +1001,43 @@ select:focus-visible {
   font-family: var(--font-heading--family);
   font-weight: var(--font-heading--weight, 700);
   text-transform: uppercase;
-  letter-spacing: 0.005em;
-  line-height: 0.9;
-  font-size: clamp(2.75rem, 7vw, 5.5rem);
+  letter-spacing: -0.02em;
+  line-height: 0.85;
+  font-size: clamp(3rem, 9vw, 7rem);
+}
+
+/* Sub + actions share one baseline row so the band fills the width */
+.golazo-hero__lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xl);
+  margin-top: 1.4rem;
+}
+
+@media screen and (min-width: 750px) {
+  .golazo-hero__lead {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--gap-3xl);
+  }
 }
 
 .golazo-hero__sub {
-  margin: 1.1rem 0 1.9rem;
-  max-width: 42ch;
+  margin: 0;
+  max-width: 44ch;
   font-family: var(--font-body--family);
   font-size: var(--font-size--lg);
   line-height: 1.5;
   color: var(--golazo-muted);
+}
+
+.golazo-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-lg) var(--gap-xl);
+  flex-shrink: 0;
 }
 
 .golazo-hero__cta.button {
@@ -785,21 +1047,157 @@ select:focus-visible {
   padding-inline: var(--padding-2xl);
 }
 
-.golazo-hero__media {
-  background-color: var(--golazo-media-bg);
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
+.golazo-hero__ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--font-heading--family);
+  font-weight: var(--font-heading--weight, 700);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.9rem;
+  color: var(--color-foreground);
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+  transition: text-decoration-color var(--animation-speed) var(--animation-easing);
 }
 
-.golazo-hero__media img {
+.golazo-hero__ghost span {
+  transition: transform var(--animation-speed) var(--animation-easing);
+}
+
+.golazo-hero__ghost:hover {
+  text-decoration-color: currentcolor;
+}
+
+.golazo-hero__ghost:hover span {
+  transform: translateX(4px);
+}
+
+/* --- Scrolling kit wall -------------------------------------------- */
+.golazo-hero__marquee {
+  margin-top: clamp(2rem, 4vw, 3.5rem);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 6%,
+    #000 94%,
+    transparent
+  );
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.golazo-hero__track {
+  display: flex;
+  width: max-content;
+  animation: golazo-marquee var(--golazo-marquee-duration, 45s) linear infinite;
+  will-change: transform;
+}
+
+.golazo-hero__marquee:hover .golazo-hero__track,
+.golazo-hero__marquee:focus-within .golazo-hero__track {
+  animation-play-state: paused;
+}
+
+@keyframes golazo-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.golazo-hero__kit {
+  flex: 0 0 auto;
+  width: clamp(200px, 20vw, 280px);
+  margin-right: var(--gap-lg);
+  color: inherit;
+  text-decoration: none;
+}
+
+.golazo-hero__kit-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background-color: var(--golazo-media-bg);
+}
+
+.golazo-hero__kit-media img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  transition: transform 0.6s var(--animation-easing);
+}
+
+/* Legible caption on any jersey colour */
+.golazo-hero__kit-media::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 45%;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.62), transparent);
+  pointer-events: none;
+}
+
+.golazo-hero__kit-info {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-sm);
+  padding: 0.85rem 0.95rem;
+  color: #fff;
+}
+
+.golazo-hero__kit-name {
+  font-family: var(--font-heading--family);
+  font-weight: var(--font-heading--weight, 700);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  font-size: 0.82rem;
+  line-height: 1.05;
+}
+
+.golazo-hero__kit-price {
+  flex-shrink: 0;
+  font-family: var(--font-body--family);
+  font-size: 0.82rem;
+  opacity: 0.92;
+}
+
+@media (any-pointer: fine) {
+  .golazo-hero__kit:hover .golazo-hero__kit-media img {
+    transform: scale(1.05);
+  }
 }
 
 @media screen and (max-width: 749px) {
-  .golazo-hero__media {
-    aspect-ratio: 16 / 13;
+  .golazo-hero__kit {
+    width: clamp(150px, 42vw, 210px);
+    margin-right: var(--gap-md);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .golazo-hero__track {
+    animation: none;
+  }
+
+  .golazo-hero__marquee {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .golazo-hero__marquee::-webkit-scrollbar {
+    display: none;
+  }
+
+  .golazo-hero__kit-media img {
+    transition: none;
   }
 }
 
@@ -889,11 +1287,6 @@ select:focus-visible {
   text-decoration-color: currentcolor;
 }
 
-/* Tighter letter tracking on the big hero title too */
-.golazo-hero__title {
-  letter-spacing: -0.02em;
-}
-
 /* Black border on product card hover (outline avoids layout shift) */
 .product-card {
   outline: 1.5px solid transparent;
@@ -925,15 +1318,20 @@ select:focus-visible {
 /* Product page buy buttons — quantity stacked, actions on one row     */
 /* ------------------------------------------------------------------ */
 .product-details .product-form-buttons {
-  flex-direction: column;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-  gap: var(--gap-sm);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--height-buy-buttons);
+  column-gap: var(--gap-sm);
+  row-gap: var(--gap-md);
 }
 
 .product-details .product-form-buttons > * {
-  flex: 0 0 auto;
   width: 100%;
+}
+
+.product-details
+  .product-form-buttons
+  > :is(.quantity-label, .quantity-selector-wrapper, .quantity-rules, .volume-pricing, .product-form-text__error) {
+  grid-column: 1 / -1;
 }
 
 /* Compact, left-aligned quantity stepper on its own row */
@@ -952,13 +1350,75 @@ select:focus-visible {
   display: flex;
   flex-direction: row;
   align-items: stretch;
+  grid-column: 1;
   gap: var(--gap-sm);
   width: 100%;
-  margin-block-start: var(--gap-lg);
+  margin-block-start: var(--gap-xs);
 }
 
 .product-details .golazo-actions-row > * {
   flex: 1 1 0;
   min-width: 0;
   width: auto;
+}
+
+.product-details .product-form-buttons > .accelerated-checkout-block {
+  display: flex;
+  align-items: stretch;
+  grid-column: 2;
+  margin-block-start: var(--gap-xs);
+  min-width: 0;
+}
+
+.product-details .product-form-buttons > .golazo-product-wishlist {
+  grid-column: 3;
+  margin-block-start: var(--gap-xs);
+  min-width: var(--height-buy-buttons);
+}
+
+.product-details .product-form-buttons .accelerated-checkout-block > *,
+.product-details .product-form-buttons .shopify-payment-button,
+.product-details .product-form-buttons shopify-accelerated-checkout {
+  display: block;
+  width: 100%;
+  height: var(--height-buy-buttons);
+  min-height: var(--height-buy-buttons);
+}
+
+.product-details
+  .product-form-buttons
+  :is(.add-to-cart-button, .shopify-payment-button__button, .shopify-payment-button__button--unbranded) {
+  width: 100%;
+  height: var(--height-buy-buttons);
+  min-height: var(--height-buy-buttons);
+  padding-block: 0;
+  font-family: var(--font-heading--family);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.product-details .product-form-buttons .add-to-cart-text {
+  font-family: var(--font-heading--family);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.product-details .product-form-buttons > .golazo-product-wishlist {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--height-buy-buttons);
+  height: var(--height-buy-buttons);
+  padding: 0;
+  border: 1px solid var(--color-foreground);
+  background: transparent;
+  color: var(--color-foreground);
+  cursor: pointer;
+}
+
+.product-details .product-form-buttons > .golazo-product-wishlist .svg-wrapper,
+.product-details .product-form-buttons > .golazo-product-wishlist svg {
+  width: 22px;
+  height: 22px;
 }

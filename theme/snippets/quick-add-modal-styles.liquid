@@ -206,7 +206,7 @@
     justify-content: stretch;
     height: 100%;
     min-height: 0;
-    overflow-y: auto;
+    overflow-y: visible;
     position: relative;
 
     dialog[open] & {
@@ -282,30 +282,15 @@
     flex: 0 0 auto;
   }
   .quick-add-modal__content .product-details :is(.buy-buttons-block) {
-    margin-top: var(--gap-md);
-    position: sticky;
-    bottom: 0;
-    padding-bottom: var(--padding-3xl);
+    margin-top: var(--gap-sm);
+    position: static;
+    padding-bottom: 0;
     background-color: var(--color-background);
     z-index: var(--layer-raised);
 
     &::before {
-      --quick-add-modal-mask-end-progressive-enhanced: 0px;
-
-      position: absolute;
-      content: '';
       display: block;
-      inset: auto 0 100% 0;
-      pointer-events: none;
-      height: min(var(--gap-2xl), var(--gap));
-      background-color: inherit;
-      mask-image: linear-gradient(
-        to top,
-        #000 0%,
-        #000 calc(var(--gap-2xs)),
-        transparent calc(100% - var(--quick-add-modal-mask-end-progressive-enhanced)),
-        transparent
-      );
+      content: none;
     }
   }
 
@@ -375,7 +360,7 @@
   .quick-add-modal__content .product-details .variant-picker {
     flex: 0 0 auto;
 
-    padding-block: min(var(--gap-2xl), var(--gap)) var(--gap-md);
+    padding-block: var(--gap-2xs) var(--gap-sm);
     margin-block-end: 0;
   }
 
@@ -442,7 +427,7 @@
   }
 
   .quick-add-modal__content .product-details .divider {
-    margin-block: var(--gap-xl) var(--gap-lg);
+    margin-block: var(--gap-md) var(--gap-2xs);
     padding-block: 0;
   }
 
@@ -534,7 +519,7 @@
       position: sticky;
       grid-column: 1 / 4;
       width: var(--quick-add-modal-gallery-width);
-      overflow-y: auto;
+      overflow: hidden;
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
@@ -611,6 +596,51 @@
   .quick-add-modal__content .sticky-content,
   .quick-add-modal__content .sticky-content--desktop {
     top: 0;
+  }
+
+  .quick-add-modal__content .product-form-buttons {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--gap-sm);
+    row-gap: var(--gap-md);
+  }
+
+  .quick-add-modal__content
+    .product-form-buttons
+    > :is(.quantity-label, .quantity-selector-wrapper, .quantity-rules, .volume-pricing, .product-form-text__error) {
+    grid-column: 1 / -1;
+  }
+
+  .quick-add-modal__content .product-form-buttons > .golazo-actions-row {
+    grid-column: 1;
+    margin-top: var(--gap-xs);
+    min-width: 0;
+  }
+
+  .quick-add-modal__content .product-form-buttons > .accelerated-checkout-block {
+    display: flex;
+    align-items: stretch;
+    grid-column: 2;
+    margin-top: var(--gap-xs);
+    min-width: 0;
+  }
+
+  .quick-add-modal__content .product-form-buttons .accelerated-checkout-block > *,
+  .quick-add-modal__content .product-form-buttons .shopify-payment-button,
+  .quick-add-modal__content .product-form-buttons shopify-accelerated-checkout {
+    display: block;
+    width: 100%;
+    height: var(--height-buy-buttons);
+    min-height: var(--height-buy-buttons);
+  }
+
+  .quick-add-modal__content
+    .product-form-buttons
+    :is(.add-to-cart-button, .shopify-payment-button__button, .shopify-payment-button__button--unbranded) {
+    width: 100%;
+    height: var(--height-buy-buttons);
+    min-height: var(--height-buy-buttons);
+    padding-block: 0;
   }
 
   .quick-add-modal__content .text-block.rte:not(product-price),

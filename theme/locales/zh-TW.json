@@ -29,6 +29,9 @@
     "slider_label": "投影播放器"
   },
   "accessibility": {
+    "add_to_wishlist": "Add {{ product_title }} to wishlist",
+    "remove_from_wishlist": "Remove {{ product_title }} from wishlist",
+    "wishlist": "Wishlist",
     "play_model": "播放 3D 模型",
     "play_video": "播放影片",
     "unit_price": "單價",

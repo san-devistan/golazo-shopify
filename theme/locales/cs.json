@@ -29,6 +29,9 @@
     "slider_label": "Posuvník"
   },
   "accessibility": {
+    "add_to_wishlist": "Add {{ product_title }} to wishlist",
+    "remove_from_wishlist": "Remove {{ product_title }} from wishlist",
+    "wishlist": "Wishlist",
     "play_model": "Přehrát 3D model",
     "play_video": "Přehrát video",
     "unit_price": "Jednotková cena",

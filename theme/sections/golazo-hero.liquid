@@ -1,15 +1,10 @@
 {%- liquid
   assign hero_collection = section.settings.collection
-  assign hero_image = section.settings.image
 
-  if hero_image == blank and hero_collection != blank
-    for p in hero_collection.products limit: 1
-      assign hero_image = p.featured_image
-    endfor
-  endif
-
-  if hero_image == blank
-    assign hero_image = collections.all.products.first.featured_image
+  assign hero_products = hero_collection.products
+  assign kit_count = hero_products.size
+  if section.settings.products_limit > 0 and kit_count > section.settings.products_limit
+    assign kit_count = section.settings.products_limit
   endif
 
   assign cta_url = section.settings.button_link
@@ -20,42 +15,86 @@
     assign cta_url = routes.all_products_collection_url
   endif
 
+  assign cta_url_2 = section.settings.button_link_2
+  if cta_url_2 == blank
+    assign cta_url_2 = routes.all_products_collection_url
+  endif
+
+  assign speed = section.settings.speed | default: 4
+  assign duration = kit_count | times: speed
+  if duration < 20
+    assign duration = 20
+  endif
+
   assign hero_pt = section.settings['padding-block-start'] | default: 56
   assign hero_pb = section.settings['padding-block-end'] | default: 56
 -%}
 
-<div class="golazo-hero" style="--golazo-hero-pt: {{ hero_pt }}px; --golazo-hero-pb: {{ hero_pb }}px;">
-  <div class="golazo-hero__inner">
-    <div class="golazo-hero__content">
-      {%- if section.settings.eyebrow != blank -%}
-        <p class="golazo-hero__eyebrow">{{ section.settings.eyebrow }}</p>
-      {%- endif -%}
-      {%- if section.settings.heading != blank -%}
-        <h1 class="golazo-hero__title">{{ section.settings.heading }}</h1>
-      {%- endif -%}
+<div
+  class="golazo-hero"
+  style="--golazo-hero-pt: {{ hero_pt }}px; --golazo-hero-pb: {{ hero_pb }}px; --golazo-marquee-duration: {{ duration }}s;"
+>
+  <div class="golazo-hero__head">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="golazo-hero__eyebrow">{{ section.settings.eyebrow }}</p>
+    {%- endif -%}
+    {%- if section.settings.heading != blank -%}
+      <h1 class="golazo-hero__title">{{ section.settings.heading }}</h1>
+    {%- endif -%}
+
+    <div class="golazo-hero__lead">
       {%- if section.settings.subheading != blank -%}
         <p class="golazo-hero__sub">{{ section.settings.subheading }}</p>
       {%- endif -%}
-      {%- if section.settings.button_label != blank -%}
-        <a class="golazo-hero__cta button" href="{{ cta_url }}">{{ section.settings.button_label }}</a>
-      {%- endif -%}
-    </div>
-
-    {%- if hero_image != blank -%}
-      <div class="golazo-hero__media">
-        <img
-          src="{{ hero_image | image_url: width: 1100 }}"
-          srcset="{{ hero_image | image_url: width: 550 }} 550w, {{ hero_image | image_url: width: 1100 }} 1100w"
-          sizes="(min-width: 750px) 48vw, 100vw"
-          alt="{{ hero_image.alt | escape }}"
-          width="1100"
-          height="{{ 1100 | divided_by: hero_image.aspect_ratio | round }}"
-          loading="eager"
-          fetchpriority="high"
-        >
+      <div class="golazo-hero__actions">
+        {%- if section.settings.button_label != blank -%}
+          <a class="golazo-hero__cta button" href="{{ cta_url }}">{{ section.settings.button_label }}</a>
+        {%- endif -%}
+        {%- if section.settings.button_label_2 != blank -%}
+          <a class="golazo-hero__ghost" href="{{ cta_url_2 }}">
+            {{ section.settings.button_label_2 }}
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        {%- endif -%}
       </div>
-    {%- endif -%}
+    </div>
   </div>
+
+  {%- if kit_count > 0 -%}
+    <div class="golazo-hero__marquee" aria-label="{{ section.settings.heading | default: 'Featured' | escape }} jerseys">
+      <div class="golazo-hero__track">
+        {%- for pass in (1..2) -%}
+          {%- for product in hero_products limit: kit_count -%}
+            {%- assign img = product.featured_image -%}
+            <a
+              class="golazo-hero__kit"
+              href="{{ product.url }}"
+              {%- if pass == 2 %} aria-hidden="true" tabindex="-1"{% endif -%}
+            >
+              <span class="golazo-hero__kit-media">
+                {%- if img != blank -%}
+                  <img
+                    src="{{ img | image_url: width: 480 }}"
+                    srcset="{{ img | image_url: width: 300 }} 300w, {{ img | image_url: width: 480 }} 480w, {{ img | image_url: width: 720 }} 720w"
+                    sizes="(min-width: 750px) 20vw, 42vw"
+                    alt="{{ product.title | escape }}"
+                    width="480"
+                    height="{{ 480 | divided_by: img.aspect_ratio | round }}"
+                    loading="{% if pass == 1 and forloop.index <= 5 %}eager{% else %}lazy{% endif %}"
+                    {% if pass == 1 and forloop.index == 1 %}fetchpriority="high"{% endif %}
+                  >
+                {%- endif -%}
+                <span class="golazo-hero__kit-info">
+                  <span class="golazo-hero__kit-name">{{ product.title }}</span>
+                  <span class="golazo-hero__kit-price">{{ product.price | money }}</span>
+                </span>
+              </span>
+            </a>
+          {%- endfor -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
 </div>
 
 {% schema %}
@@ -79,30 +118,66 @@
       "type": "textarea",
       "id": "subheading",
       "label": "Subheading",
-      "default": "Authentic national-team jerseys. Engineered for the pitch, built for the streets."
+      "default": "Every national kit for 2026 — engineered for the pitch, built for the streets."
+    },
+    {
+      "type": "header",
+      "content": "Calls to action"
     },
     {
       "type": "text",
       "id": "button_label",
-      "label": "Button label",
+      "label": "Primary button label",
       "default": "Shop the collection"
     },
     {
       "type": "url",
       "id": "button_link",
-      "label": "Button link"
+      "label": "Primary button link",
+      "info": "Defaults to the featured collection."
+    },
+    {
+      "type": "text",
+      "id": "button_label_2",
+      "label": "Secondary link label",
+      "default": "Browse all jerseys"
+    },
+    {
+      "type": "url",
+      "id": "button_link_2",
+      "label": "Secondary link",
+      "info": "Defaults to all products."
+    },
+    {
+      "type": "header",
+      "content": "Kit wall"
     },
     {
       "type": "collection",
       "id": "collection",
       "label": "Featured collection",
-      "info": "Used for the hero image and button link when set."
+      "info": "Products shown in the scrolling kit wall."
     },
     {
-      "type": "image_picker",
-      "id": "image",
-      "label": "Hero image",
-      "info": "Optional. Overrides the collection image."
+      "type": "range",
+      "id": "products_limit",
+      "label": "Max products",
+      "min": 0,
+      "max": 24,
+      "step": 1,
+      "default": 0,
+      "info": "0 = show all products in the collection."
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Scroll speed",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "default": 4,
+      "info": "Seconds per kit. Lower = faster."
     },
     {
       "type": "header",

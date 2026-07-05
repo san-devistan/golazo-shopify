@@ -828,6 +828,35 @@
         style="--menu-drawer-animation-index: {{ linklist.links.size }};"
       >
         {% liquid
+          assign drawer_account_url = routes.account_login_url | default: routes.account_url | default: routes.root_url
+          if customer
+            assign drawer_account_url = routes.account_url | default: drawer_account_url
+          endif
+        %}
+        {% if shop.customer_accounts_enabled %}
+          <a
+            class="menu-drawer__account menu-drawer__utility-action focus-inset"
+            href="{{ drawer_account_url }}"
+            aria-label="{{ 'content.account_title' | t }}"
+          >
+            <span class="svg-wrapper" aria-hidden="true">
+              {{ 'icon-account.svg' | inline_asset_content }}
+            </span>
+            <span>{{ 'content.account_title' | t }}</span>
+          </a>
+        {% endif %}
+        <button
+          type="button"
+          class="button-unstyled menu-drawer__account menu-drawer__utility-action menu-drawer__wishlist golazo-wishlist focus-inset"
+          aria-label="{{ 'accessibility.wishlist' | t }}"
+          aria-pressed="false"
+        >
+          <span class="svg-wrapper" aria-hidden="true">
+            {% render 'golazo-heart' %}
+          </span>
+          <span>{{ 'accessibility.wishlist' | t }}</span>
+        </button>
+        {% liquid
           assign show_language = section.settings.show_language
           if localization.available_languages.size <= 1
             assign show_language = false
@@ -1516,6 +1545,21 @@
 
     margin-right: 0.55rem;
     margin-left: -0.45rem;
+  }
+
+  .menu-drawer__utility-action {
+    width: fit-content;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    font-family: var(--menu-top-level-font-family);
+    font-weight: var(--menu-top-level-font-weight);
+    text-transform: var(--menu-top-level-font-case);
+    cursor: pointer;
+  }
+
+  .menu-drawer__utility-action .svg-wrapper {
+    display: inline-flex;
   }
 
   .menu-drawer__link-image,

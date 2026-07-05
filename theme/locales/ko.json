@@ -29,6 +29,9 @@
     "slider_label": "슬라이더"
   },
   "accessibility": {
+    "add_to_wishlist": "Add {{ product_title }} to wishlist",
+    "remove_from_wishlist": "Remove {{ product_title }} from wishlist",
+    "wishlist": "Wishlist",
     "play_model": "3D 모델 재생",
     "play_video": "동영상 재생",
     "unit_price": "단가",

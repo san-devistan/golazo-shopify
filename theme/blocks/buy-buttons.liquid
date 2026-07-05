@@ -238,6 +238,25 @@
               add_to_cart_text: add_to_cart_text
             %}
           </div>
+          {% content_for 'block',
+            type: 'accelerated-checkout',
+            id: 'accelerated-checkout',
+            can_add_to_cart: can_add_to_cart,
+            form_obj: form
+          %}
+          <button
+            type="button"
+            class="golazo-wishlist golazo-product-wishlist"
+            data-product-id="{{ product.id }}"
+            data-wishlist-add-label="{{ 'accessibility.add_to_wishlist' | t: product_title: product.title | escape }}"
+            data-wishlist-remove-label="{{ 'accessibility.remove_from_wishlist' | t: product_title: product.title | escape }}"
+            aria-label="{{ 'accessibility.add_to_wishlist' | t: product_title: product.title | escape }}"
+            aria-pressed="false"
+          >
+            <span class="svg-wrapper" aria-hidden="true">
+              {% render 'golazo-heart' %}
+            </span>
+          </button>
         </div>
         {%- if block_settings.gift_card_form and product.gift_card? -%}
           </span>
@@ -656,6 +675,10 @@
           "settings": {
             "style_class": "button-secondary"
           }
+        },
+        "accelerated-checkout": {
+          "type": "accelerated-checkout",
+          "static": true
         }
       }
     }
