@@ -9,6 +9,11 @@
 
 {% assign block_settings = block.settings %}
 
+<script
+  src="{{ 'dialog.js' | asset_url }}"
+  type="module"
+></script>
+
 {% liquid
   # Custom styling applies to:
   #   - dropdowns + buttons when variant_style_class == 'custom' (unselected colors)
@@ -57,6 +62,12 @@
         {%- liquid
           assign swatch_count = product_option.values | map: 'swatch' | compact | size
           assign variant_style = block_settings.variant_style
+          assign option_name_downcase = product_option.name | downcase
+          assign show_size_guide = false
+
+          if option_name_downcase contains 'size'
+            assign show_size_guide = true
+          endif
 
           if swatch_count > 0 and block_settings.show_swatches
             if block_settings.variant_style == 'dropdown'
@@ -70,6 +81,11 @@
             assign fieldset_id = section.id | append: '-' | append: product_resource.id | append: '-' | append: product_option.name | handleize
             assign option_id_attribute = 'data-option-id="' | append: fieldset_id | append: '"'
             assign longest_value = 0
+          endif
+
+          assign size_guide_id = ''
+          if show_size_guide
+            assign size_guide_id = 'SizeGuide-' | append: section.id | append: '-' | append: block.id | append: '-' | append: fieldset_index
           endif
         -%}
 
@@ -93,12 +109,152 @@
             ref="fieldsets[]"
             {{ option_id_attribute }}
           >
-            <legend>
-              {{ product_option.name | escape -}}
-              {%- if variant_style == 'swatch' -%}
-                <span class="variant-option__swatch-value">{{ product_option.selected_value }}</span>
+            <legend{% if show_size_guide %} class="variant-option__legend variant-option__legend--size-guide"{% endif %}>
+              {%- if show_size_guide -%}
+                <span class="variant-option__legend-text">
+              {%- endif -%}
+                {{ product_option.name | escape -}}
+                {%- if variant_style == 'swatch' -%}
+                  <span class="variant-option__swatch-value">{{ product_option.selected_value }}</span>
+                {%- endif %}
+              {%- if show_size_guide -%}
+                </span>
+                <button
+                  type="button"
+                  class="button-unstyled size-guide__trigger"
+                  data-size-guide-open
+                  aria-haspopup="dialog"
+                  aria-controls="{{ size_guide_id }}"
+                >
+                  {{ 'content.size_guide_trigger' | t }}
+                </button>
               {%- endif %}
             </legend>
+            {%- if show_size_guide -%}
+              <dialog-component
+                class="size-guide"
+                data-size-guide
+                data-size-guide-unit="metric"
+              >
+                <dialog
+                  id="{{ size_guide_id }}"
+                  ref="dialog"
+                  class="size-guide__dialog dialog-modal"
+                  scroll-lock
+                  aria-labelledby="{{ size_guide_id }}-heading"
+                >
+                  <div class="size-guide__header">
+                    <h2
+                      id="{{ size_guide_id }}-heading"
+                      class="size-guide__title"
+                    >
+                      {{ 'content.size_guide' | t }}
+                    </h2>
+                    <div
+                      class="size-guide__units"
+                      role="group"
+                      aria-label="{{ 'content.size_guide_units' | t }}"
+                    >
+                      <button
+                        type="button"
+                        class="button-unstyled size-guide__unit-button"
+                        data-size-guide-unit-button="metric"
+                        aria-pressed="true"
+                      >
+                        {{ 'content.metric' | t }}
+                      </button>
+                      <button
+                        type="button"
+                        class="button-unstyled size-guide__unit-button"
+                        data-size-guide-unit-button="imperial"
+                        aria-pressed="false"
+                      >
+                        {{ 'content.us_uk' | t }}
+                      </button>
+                    </div>
+                  </div>
+                  <div class="size-guide__table-wrapper">
+                    <table class="size-guide__table">
+                      <thead>
+                        <tr>
+                          <th scope="col">{{ 'content.size' | t }}</th>
+                          <th
+                            scope="col"
+                            class="size-guide__cell--metric"
+                          >
+                            {{ 'content.height_with_unit' | t: unit: 'cm' }}
+                          </th>
+                          <th
+                            scope="col"
+                            class="size-guide__cell--metric"
+                          >
+                            {{ 'content.weight_with_unit' | t: unit: 'kg' }}
+                          </th>
+                          <th
+                            scope="col"
+                            class="size-guide__cell--imperial"
+                          >
+                            {{ 'content.height_with_unit' | t: unit: 'ft/in' }}
+                          </th>
+                          <th
+                            scope="col"
+                            class="size-guide__cell--imperial"
+                          >
+                            {{ 'content.weight_with_unit' | t: unit: 'lb' }}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <th scope="row">S</th>
+                          <td class="size-guide__cell--metric">160-165</td>
+                          <td class="size-guide__cell--metric">50-62</td>
+                          <td class="size-guide__cell--imperial">5'3"-5'5"</td>
+                          <td class="size-guide__cell--imperial">110-137</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">M</th>
+                          <td class="size-guide__cell--metric">165-170</td>
+                          <td class="size-guide__cell--metric">62-75</td>
+                          <td class="size-guide__cell--imperial">5'5"-5'7"</td>
+                          <td class="size-guide__cell--imperial">137-165</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">L</th>
+                          <td class="size-guide__cell--metric">170-175</td>
+                          <td class="size-guide__cell--metric">75-80</td>
+                          <td class="size-guide__cell--imperial">5'7"-5'9"</td>
+                          <td class="size-guide__cell--imperial">165-176</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">XL</th>
+                          <td class="size-guide__cell--metric">175-180</td>
+                          <td class="size-guide__cell--metric">80-85</td>
+                          <td class="size-guide__cell--imperial">5'9"-5'11"</td>
+                          <td class="size-guide__cell--imperial">176-187</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">XXL</th>
+                          <td class="size-guide__cell--metric">180-185</td>
+                          <td class="size-guide__cell--metric">85-90</td>
+                          <td class="size-guide__cell--imperial">5'11"-6'1"</td>
+                          <td class="size-guide__cell--imperial">187-198</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <button
+                    ref="closeButton"
+                    type="button"
+                    on:click="/closeDialog"
+                    class="button button-unstyled close-button size-guide__close"
+                    aria-label="{{ 'accessibility.close_dialog' | t }}"
+                  >
+                    {{- 'icon-close.svg' | inline_asset_content -}}
+                  </button>
+                </dialog>
+              </dialog-component>
+            {%- endif -%}
             {%- for product_option_value in product_option.values -%}
               {% if product_option_value.size > longest_value and option_id_attribute %}
                 {% assign longest_value = product_option_value.size %}
@@ -243,5 +399,170 @@
     </form>
   </variant-picker>
 {% endunless %}
+
+{% stylesheet %}
+  .variant-option__legend--size-guide {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-md);
+    width: 100%;
+  }
+
+  .variant-option__legend-text {
+    min-width: 0;
+  }
+
+  .size-guide__trigger {
+    color: currentColor;
+    cursor: pointer;
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    white-space: nowrap;
+  }
+
+  .size-guide__trigger:hover {
+    opacity: 0.65;
+  }
+
+  .size-guide {
+    display: contents;
+  }
+
+  .size-guide__dialog {
+    width: min(560px, calc(100vw - 32px));
+    max-width: min(560px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    padding: var(--padding-4xl) var(--padding-xl) var(--padding-xl);
+    overflow: auto;
+  }
+
+  .size-guide__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-md);
+    margin-block-end: var(--margin-lg);
+  }
+
+  .size-guide__title {
+    margin: 0;
+    min-width: 0;
+    font-size: var(--font-size--xl);
+  }
+
+  .size-guide__units {
+    display: inline-flex;
+    flex: 0 0 auto;
+    gap: 0;
+    border: 1px solid currentColor;
+  }
+
+  .size-guide__unit-button {
+    padding: 0.5rem 0.85rem;
+    color: currentColor;
+    cursor: pointer;
+    font: inherit;
+    line-height: 1;
+  }
+
+  .size-guide__unit-button + .size-guide__unit-button {
+    border-inline-start: 1px solid currentColor;
+  }
+
+  .size-guide__unit-button[aria-pressed='true'] {
+    background: var(--color-foreground);
+    color: var(--color-background);
+  }
+
+  .size-guide__table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .size-guide__table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .size-guide__table th,
+  .size-guide__table td {
+    padding: 0.8rem 0.75rem;
+    border-block-end: 1px solid rgb(var(--color-foreground-rgb) / var(--opacity-15));
+    white-space: nowrap;
+  }
+
+  .size-guide__table thead th {
+    font-weight: 700;
+  }
+
+  .size-guide__table tbody th {
+    font-weight: 700;
+  }
+
+  .size-guide__cell--imperial {
+    display: none;
+  }
+
+  .size-guide[data-size-guide-unit='imperial'] .size-guide__cell--metric {
+    display: none;
+  }
+
+  .size-guide[data-size-guide-unit='imperial'] .size-guide__cell--imperial {
+    display: table-cell;
+  }
+
+  @media screen and (max-width: 749px) {
+    .size-guide__dialog {
+      width: calc(100dvw - 32px);
+      max-width: calc(100dvw - 32px);
+      height: auto;
+      max-height: calc(100dvh - 32px);
+      padding: var(--padding-4xl) var(--padding-md) var(--padding-md);
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!window.variantSizeGuideInitialized) {
+    window.variantSizeGuideInitialized = true;
+
+    document.addEventListener('click', (event) => {
+      if (!(event.target instanceof Element)) return;
+
+      const trigger = event.target.closest('[data-size-guide-open]');
+      if (trigger) {
+        event.preventDefault();
+
+        const component = trigger.closest('.variant-option')?.querySelector('[data-size-guide]');
+        if (!(component instanceof HTMLElement)) return;
+
+        customElements.upgrade(component);
+
+        if (typeof component.showDialog === 'function') {
+          component.showDialog();
+        }
+
+        return;
+      }
+
+      const unitButton = event.target.closest('[data-size-guide-unit-button]');
+      if (!unitButton) return;
+
+      const component = unitButton.closest('[data-size-guide]');
+      const unit = unitButton.getAttribute('data-size-guide-unit-button');
+      if (!(component instanceof HTMLElement) || !unit) return;
+
+      component.setAttribute('data-size-guide-unit', unit);
+
+      component.querySelectorAll('[data-size-guide-unit-button]').forEach((button) => {
+        button.setAttribute('aria-pressed', String(button === unitButton));
+      });
+    });
+  }
+{% endjavascript %}
 
 {% render 'variant-picker-styles' %}

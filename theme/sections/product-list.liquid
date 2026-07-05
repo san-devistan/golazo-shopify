@@ -2,18 +2,23 @@
 
 {% liquid
   assign max_items = section.settings.max_products
-  assign initial_items = section.settings.initial_products | default: max_items
-
-  if initial_items > max_items
-    assign initial_items = max_items
-  endif
-
   assign show_more_enabled = false
   if section.settings.enable_show_more and section.settings.layout_type == 'grid'
     unless section.settings.carousel_on_mobile
       assign show_more_enabled = true
     endunless
   endif
+
+  assign initial_items = section.settings.initial_products | default: max_items
+  assign products_per_page = max_items
+
+  if show_more_enabled
+    assign products_per_page = initial_items
+  elsif initial_items > max_items
+    assign initial_items = max_items
+  endif
+
+  assign product_list_next_url = ''
 
   if section.settings.background_color != blank
     render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
@@ -25,6 +30,7 @@
 ></div>
 <div
   data-testid="product-list"
+  data-product-list-section-id="{{ section.id }}"
   class="
     section
     section--{{ section.settings.section_width }}
@@ -44,8 +50,9 @@
 
   {% capture list_items %}
     {% if section.settings.collection != blank and shop.products_count != 0 %}
-      {% paginate section.settings.collection.products by max_items %}
-        {% for product in section.settings.collection.products limit: max_items %}
+      {% paginate section.settings.collection.products by products_per_page %}
+        {% assign product_list_next_url = paginate.next.url | default: '' %}
+        {% for product in section.settings.collection.products %}
           <div
             class="resource-list__item{% if show_more_enabled and forloop.index > initial_items %} product-list__item--hidden{% endif %}"
             {% if show_more_enabled and forloop.index > initial_items %}
@@ -73,7 +80,7 @@
             data-product-list-hidden
           {% endif %}
         >
-            {% content_for 'block', type: '_product-card', id: 'static-product-card', closest.product: null %}
+            {% content_for 'block', type: '_product-card', id: 'static-product-card-placeholder', closest.product: null %}
         </div>
 
         {% unless forloop.last %}
@@ -86,24 +93,35 @@
   {% liquid
     # Create an array from the list items to be used for different layout types
     assign list_items_array = list_items | strip | split: '<!--@list/split-->'
+    assign show_more_button_enabled = false
+
+    if show_more_enabled
+      if list_items_array.size > initial_items or product_list_next_url != blank
+        assign show_more_button_enabled = true
+      endif
+    endif
   %}
 
   {% render 'resource-list',
     list_items: list_items,
     list_items_array: list_items_array,
     settings: section.settings,
-    slide_count: max_items,
+    slide_count: list_items_array.size,
     content_type: 'products',
     test_id: 'resource-list-grid'
   %}
 
-  {% if show_more_enabled and list_items_array.size > initial_items %}
+  {% if show_more_button_enabled %}
     <div class="product-list__show-more">
       <button
         type="button"
         class="button product-list__show-more-button"
         data-product-list-show-more
+        data-section-id="{{ section.id }}"
         data-step="{{ initial_items }}"
+        {% if product_list_next_url != blank %}
+          data-next-url="{{ product_list_next_url | escape }}"
+        {% endif %}
       >
         {{ 'actions.show_more' | t }}
       </button>
@@ -152,16 +170,17 @@
 {% endstylesheet %}
 
 {% javascript %}
-  document.addEventListener('click', (event) => {
-    if (!(event.target instanceof Element)) return;
+  const getProductListSection = (button) => button.closest('.section-resource-list');
 
-    const button = event.target.closest('[data-product-list-show-more]');
-    if (!button) return;
+  const getProductListGrid = (section) => section?.querySelector('[data-testid="resource-list-grid"]');
 
-    const section = button.closest('.section-resource-list');
-    if (!section) return;
+  const getRenderedProductListSection = (doc, sectionId) => {
+    return Array.from(doc.querySelectorAll('[data-product-list-section-id]')).find((section) => {
+      return section.dataset.productListSectionId === sectionId;
+    });
+  };
 
-    const step = Number.parseInt(button.dataset.step, 10) || 8;
+  const revealProductListItems = (section, step) => {
     const hiddenItems = Array.from(section.querySelectorAll('[data-product-list-hidden]'));
 
     hiddenItems.slice(0, step).forEach((item) => {
@@ -169,9 +188,77 @@
       item.removeAttribute('data-product-list-hidden');
     });
 
-    if (!section.querySelector('[data-product-list-hidden]')) {
-      button.closest('.product-list__show-more')?.remove();
+    return hiddenItems.length;
+  };
+
+  const loadNextProductListPage = async (button, section) => {
+    const sectionId = button.dataset.sectionId;
+    const nextUrl = button.dataset.nextUrl;
+
+    if (!sectionId || !nextUrl) return false;
+
+    const url = new URL(nextUrl, window.location.href);
+    url.searchParams.set('section_id', sectionId);
+
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+
+    try {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`Failed to load products: ${response.status}`);
+      }
+
+      const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+      const nextSection = getRenderedProductListSection(doc, sectionId);
+      const currentGrid = getProductListGrid(section);
+      const nextGrid = getProductListGrid(nextSection);
+
+      if (!currentGrid || !nextGrid) return false;
+
+      currentGrid.append(...Array.from(nextGrid.children));
+
+      const nextButton = nextSection?.querySelector('[data-product-list-show-more]');
+      const followingUrl = nextButton?.dataset.nextUrl;
+
+      if (followingUrl) {
+        button.dataset.nextUrl = followingUrl;
+      } else {
+        delete button.dataset.nextUrl;
+      }
+
+      return Boolean(section.querySelector('[data-product-list-hidden]') || button.dataset.nextUrl);
+    } catch (error) {
+      console.error(error);
+      return true;
+    } finally {
+      button.disabled = false;
+      button.removeAttribute('aria-busy');
     }
+  };
+
+  document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    const button = event.target.closest('[data-product-list-show-more]');
+    if (!button) return;
+    if (!(button instanceof HTMLButtonElement) || button.disabled) return;
+
+    const section = getProductListSection(button);
+    if (!section) return;
+
+    const step = Number.parseInt(button.dataset.step, 10) || 8;
+    const revealedCount = revealProductListItems(section, step);
+
+    if (section.querySelector('[data-product-list-hidden]')) return;
+    if (revealedCount > 0 && button.dataset.nextUrl) return;
+
+    loadNextProductListPage(button, section).then((hasMoreProducts) => {
+      if (!hasMoreProducts) {
+        button.closest('.product-list__show-more')?.remove();
+      }
+    });
   });
 {% endjavascript %}
 

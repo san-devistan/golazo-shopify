@@ -45,12 +45,64 @@
     <div class="golazo-collection-head">
       {% render 'golazo-breadcrumb', collection: collection %}
       <h1 class="golazo-collection-title">{{ collection.title }}</h1>
+
+      <div
+        class="golazo-collection-search"
+        data-collection-search="{{ section.id }}"
+      >
+        <form
+          class="golazo-collection-search__form"
+          action="{{ routes.search_url }}"
+          method="get"
+          role="search"
+        >
+          <label
+            class="visually-hidden"
+            for="CollectionSearch-{{ section.id }}"
+          >
+            Search products in {{ collection.title }}
+          </label>
+          <input
+            id="CollectionSearch-{{ section.id }}"
+            class="golazo-collection-search__input"
+            type="search"
+            name="q"
+            value=""
+            placeholder="Search products"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            data-collection-search-input
+          >
+          <input
+            type="hidden"
+            name="type"
+            value="product"
+          >
+          <button
+            class="golazo-collection-search__clear"
+            type="button"
+            aria-label="Clear product search"
+            data-collection-search-clear
+            hidden
+          >
+            &times;
+          </button>
+        </form>
+        <p
+          class="golazo-collection-search__status"
+          aria-live="polite"
+          data-collection-search-status
+          hidden
+        ></p>
+      </div>
     </div>
 
     <div
       class="collection-wrapper grid gap-style{% if section.settings.product_grid_width == 'full-width' %} collection-wrapper--grid-full-width{% endif %}"
     >
-      {% assign products_per_page = 24 %}
+      {% assign products_per_page = 250 %}
 
       {% if section.settings.enable_infinite_scroll == false %}
         {% assign products_per_page = section.settings.products_per_page %}
@@ -64,6 +116,7 @@
               class="product-grid__item product-grid__item--{{ forloop.index0 }}"
               data-page="{{ paginate.current_page }}"
               data-product-id="{{ product.id }}"
+              data-product-title="{{ product.title | escape }}"
               ref="cards[]"
             >
               {% content_for 'block',
@@ -87,6 +140,55 @@
     </div>
   </results-list>
 </collection-component>
+
+<script>
+  (() => {
+    const root = document.querySelector('[data-collection-search="{{ section.id }}"]');
+    const grid = document.querySelector('.product-grid--{{ section.id }}');
+
+    if (!root || !grid) return;
+
+    const form = root.querySelector('.golazo-collection-search__form');
+    const input = root.querySelector('[data-collection-search-input]');
+    const clear = root.querySelector('[data-collection-search-clear]');
+    const status = root.querySelector('[data-collection-search-status]');
+    const normalize = (value) => value.trim().toLowerCase();
+
+    const getItems = () => Array.from(grid.querySelectorAll('.product-grid__item'));
+    const getTitle = (item) => normalize(item.dataset.productTitle || item.textContent || '');
+
+    const update = () => {
+      const query = normalize(input.value);
+      let visibleCount = 0;
+
+      for (const item of getItems()) {
+        const matches = query === '' || getTitle(item).includes(query);
+        item.hidden = !matches;
+        if (matches) visibleCount += 1;
+      }
+
+      clear.hidden = query === '';
+      status.hidden = query === '';
+      status.textContent =
+        query === ''
+          ? ''
+          : `${visibleCount} ${visibleCount === 1 ? 'product' : 'products'} found`;
+    };
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      update();
+    });
+    input.addEventListener('input', update);
+    clear.addEventListener('click', () => {
+      input.value = '';
+      input.focus();
+      update();
+    });
+
+    new MutationObserver(update).observe(grid, { childList: true });
+  })();
+</script>
 
 {% schema %}
 {

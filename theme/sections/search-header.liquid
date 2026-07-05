@@ -9,26 +9,86 @@
 <div
   class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
 ></div>
-<div class="section section--page-width{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}">
-  <div
-    class="spacing-style search-page__header"
-    style="
-      --horizontal-alignment: {{ section.settings.alignment }};
-      {% render 'spacing-style', settings: section.settings %}
-    "
-  >
-    {% assign heading_text = 'content.search' | t %}
+<div
+  class="section product-grid-container{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  style="{% render 'spacing-style', settings: section.settings %}"
+>
+  <div class="golazo-collection-head golazo-search-head">
+    <nav
+      class="golazo-breadcrumb"
+      aria-label="Breadcrumb"
+    >
+      <a
+        class="golazo-breadcrumb__back"
+        href="{{ routes.root_url }}"
+      >
+        &larr; Back
+      </a>
+      <a href="{{ routes.root_url }}">Home</a>
+      <span
+        class="golazo-breadcrumb__sep"
+        aria-hidden="true"
+      >
+        /
+      </span>
+      <span class="golazo-breadcrumb__current">{{ 'content.search' | t }}</span>
+    </nav>
 
+    {% assign heading_text = 'content.search' | t %}
     {% if search.performed %}
       {% assign heading_text = 'content.search_results' | t %}
     {% endif %}
 
-    {% capture heading_text %}
-      <h3>{{ heading_text }}</h3>
-    {% endcapture %}
+    <h1 class="golazo-collection-title">{{ heading_text }}</h1>
 
-    {% content_for 'block', id: 'heading', type: '_heading', text: heading_text %}
-    {% content_for 'block', id: 'search', type: '_search-input' %}
+    <div class="golazo-collection-search">
+      <form
+        class="golazo-collection-search__form"
+        action="{{ routes.search_url }}"
+        method="get"
+        role="search"
+      >
+        <label
+          class="visually-hidden"
+          for="SearchPageInput-{{ section.id }}"
+        >
+          {{ 'content.search_input_label' | t }}
+        </label>
+        <input
+          id="SearchPageInput-{{ section.id }}"
+          class="golazo-collection-search__input"
+          type="search"
+          name="q"
+          value="{{ search.terms | escape }}"
+          placeholder="{{ 'content.search_input_placeholder' | t }}"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        >
+        <input
+          type="hidden"
+          name="type"
+          value="product"
+        >
+        <button
+          class="visually-hidden"
+          type="submit"
+        >
+          {{ 'content.search' | t }}
+        </button>
+        <a
+          class="golazo-collection-search__clear"
+          href="{{ routes.search_url }}?type=product&q="
+          aria-label="{{ 'accessibility.reset_search' | t }}"
+          {% if search.terms == blank %}
+            hidden
+          {% endif %}
+        >
+          &times;
+        </a>
+      </form>
+    </div>
   </div>
 </div>
 

@@ -27,7 +27,7 @@
   <div
     class="collection-wrapper grid gap-style"
   >
-    {% assign products_per_page = 24 %}
+    {% assign products_per_page = 250 %}
 
     {% if section.settings.enable_infinite_scroll == false %}
       {% assign products_per_page = section.settings.products_per_page %}
@@ -35,7 +35,6 @@
 
     {% paginate search.results by products_per_page %}
       {% if search.results_count > 0 %}
-        {% content_for 'block', type: 'filters', id: 'filters', results: search, results_size: search.results_count %}
         {% assign products = search.results | where: 'object_type', 'product' %}
       {% else %}
         {% assign collection = settings.empty_state_collection | default: collections.all %}
@@ -51,6 +50,7 @@
             class="product-grid__item product-grid__item--{{ forloop.index0 }}"
             data-page="{{ paginate.current_page }}"
             data-product-id="{{ product.id }}"
+            data-product-title="{{ product.title | escape }}"
             ref="cards[]"
           >
             {% content_for 'block',
@@ -68,8 +68,7 @@
         children: children,
         products: products,
         paginate: paginate,
-        enable_infinite_scroll: section.settings.enable_infinite_scroll,
-        title: title
+        enable_infinite_scroll: section.settings.enable_infinite_scroll
       %}
     {% endpaginate %}
   </div>
