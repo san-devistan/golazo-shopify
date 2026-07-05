@@ -11,6 +11,7 @@
 :root {
   /* Cool light-grey panel behind product imagery (≈ reference #e7ebed) */
   --golazo-media-bg: #edf0f2;
+  --golazo-product-media-ratio: 1;
   /* Light-grey fill for controls (quantity stepper, unselected size buttons) */
   --golazo-control-bg: #eef1f3;
   --golazo-muted: rgb(0 0 0 / 0.55);
@@ -455,14 +456,40 @@ select,
   scroll-snap-align: start;
 }
 
-/* Fixed 4/5 media box + cover so the hover image swap never reflows or
+@media screen and (max-width: 749px) {
+  .mega-menu__grid--collection-products {
+    --flyout-card-width: clamp(150px, 60vw, 220px);
+  }
+
+  .mega-menu__grid--collection-products .mega-menu__content-list--products {
+    padding-block-end: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--color-foreground-rgb) / 0.35) transparent;
+  }
+
+  .mega-menu__grid--collection-products .mega-menu__content-list--products::-webkit-scrollbar {
+    display: block;
+    height: 4px;
+  }
+
+  .mega-menu__grid--collection-products .mega-menu__content-list--products::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .mega-menu__grid--collection-products .mega-menu__content-list--products::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-foreground-rgb) / 0.35);
+    border-radius: 999px;
+  }
+}
+
+/* Fixed square media box + cover so the hover image swap never reflows or
    leaves white space above the image */
 .product-card--header-flyout .card-gallery--header-flyout {
   position: relative;
   display: block;
   overflow: hidden;
   background-color: var(--golazo-media-bg);
-  aspect-ratio: 4 / 5;
+  aspect-ratio: var(--golazo-product-media-ratio);
 }
 
 .product-card--header-flyout
@@ -478,32 +505,29 @@ select,
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top center;
 }
 
 .product-card.product-card--header-flyout {
   display: block;
   padding-block-start: 0;
   outline: 0;
+  box-shadow: inset 0 0 0 1.5px transparent;
+  transition: box-shadow var(--animation-speed) var(--animation-easing);
 }
 
 .product-card--header-flyout .product-card__content {
   border: 0;
   outline: 0;
+  box-shadow: none;
 }
 
-/* Hover border drawn as an inset shadow — stays inside the card, so it can
-   never be clipped on the sides by the horizontal scroller */
 @media (any-pointer: fine) {
   .product-card.product-card--header-flyout:hover {
     outline-color: transparent;
   }
 
-  .product-card--header-flyout .product-card__content {
-    box-shadow: inset 0 0 0 1.5px transparent;
-    transition: box-shadow var(--animation-speed) var(--animation-easing);
-  }
-
-  .product-card--header-flyout:is(:hover, :focus-within) .product-card__content {
+  .product-card.product-card--header-flyout:is(:hover, :focus-within) {
     box-shadow: inset 0 0 0 1.5px var(--color-foreground);
   }
 }
@@ -539,6 +563,20 @@ select,
 .product-card .product-media-container,
 .product-card .product-media {
   background-color: var(--golazo-media-bg);
+}
+
+.product-card .card-gallery {
+  --gallery-aspect-ratio: var(--golazo-product-media-ratio) !important;
+}
+
+.product-card
+  .card-gallery
+  :is(slideshow-component, slideshow-container, slideshow-slides, slideshow-slide, .product-media-container, .product-media) {
+  aspect-ratio: var(--golazo-product-media-ratio);
+}
+
+.product-card .card-gallery :is(img, .product-media__image, svg) {
+  object-position: top center;
 }
 
 /* Wishlist heart floating over the card image */
@@ -786,28 +824,33 @@ ul[product-grid-view='zoom-out'] .product-grid__card.product-grid__card {
   background-color: var(--golazo-media-bg);
 }
 
-@media screen and (min-width: 750px) {
-  .product-information__media media-gallery.media-gallery--grid {
-    --golazo-pdp-media-ratio: 0.8;
-    --gallery-aspect-ratio: var(--golazo-pdp-media-ratio);
-  }
+.product-information__media media-gallery.media-gallery--grid {
+  --golazo-pdp-media-ratio: var(--golazo-product-media-ratio);
+  --gallery-aspect-ratio: var(--golazo-pdp-media-ratio);
+}
 
-  .product-information__media media-gallery.media-gallery--grid .media-gallery__grid .product-media-container {
-    aspect-ratio: var(--golazo-pdp-media-ratio);
-    max-height: none;
-  }
+.product-information__media
+  media-gallery.media-gallery--grid
+  :is(.media-gallery__grid .product-media-container, slideshow-slide.product-media-container) {
+  aspect-ratio: var(--golazo-pdp-media-ratio);
+  max-height: none;
+}
 
-  .product-information__media media-gallery.media-gallery--grid .media-gallery__grid .product-media {
-    aspect-ratio: var(--golazo-pdp-media-ratio);
-    width: 100%;
-    height: 100%;
-  }
+.product-information__media
+  media-gallery.media-gallery--grid
+  :is(.media-gallery__grid .product-media, slideshow-slide.product-media-container .product-media) {
+  aspect-ratio: var(--golazo-pdp-media-ratio);
+  width: 100%;
+  height: 100%;
+}
 
-  .product-information__media media-gallery.media-gallery--grid .media-gallery__grid .product-media__image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+.product-information__media
+  media-gallery.media-gallery--grid
+  :is(.media-gallery__grid .product-media__image, slideshow-slide.product-media-container .product-media__image) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
 }
 
 /* Unselected size buttons as light-grey squares */
