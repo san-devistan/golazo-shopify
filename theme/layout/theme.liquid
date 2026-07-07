@@ -127,9 +127,11 @@
     </div>
 
     {% render 'cart-drawer', render_wrapper: true %}
+    {% render 'golazo-wishlist-drawer' %}
     {% render 'theme-drawer' %}
 
     {% render 'search-modal' %}
+    {% render 'free-shipping-popup' %}
 
     <script src="{{ 'golazo-wishlist.js' | asset_url }}" defer></script>
 

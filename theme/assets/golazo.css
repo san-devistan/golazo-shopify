@@ -1004,23 +1004,34 @@ main[data-template='search'] .main-collection-grid > div {
   margin: var(--margin-lg) 0 0;
   padding: var(--padding-lg) 0 0;
   border-top: 1px solid var(--golazo-hairline);
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap-sm);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gap-md);
+  align-items: start;
   font-family: var(--font-body--family);
   font-size: var(--font-size--sm);
   color: var(--golazo-muted);
 }
 
 .golazo-trust__item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: var(--gap-xs);
+  min-width: 0;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.golazo-trust__item .svg-wrapper {
+  display: grid;
+  min-height: 24px;
+  place-items: center;
 }
 
 .golazo-trust__item .svg-wrapper svg {
-  width: 17px;
-  height: 17px;
+  width: 20px;
+  height: 20px;
   color: var(--color-foreground);
 }
 
@@ -1096,6 +1107,12 @@ input:focus-visible,
 select:focus-visible {
   outline: 2px solid var(--color-foreground);
   outline-offset: 2px;
+}
+
+dropdown-localization-component .country-filter__input:focus,
+dropdown-localization-component .country-filter__input:focus-visible {
+  outline: 0;
+  box-shadow: none;
 }
 
 /* Roomier product-detail rhythm for a premium feel */
@@ -1183,6 +1200,12 @@ select:focus-visible {
   flex-shrink: 0;
 }
 
+@media screen and (min-width: 750px) {
+  .golazo-hero__actions {
+    margin-inline-end: clamp(2rem, 8vw, 9rem);
+  }
+}
+
 .golazo-hero__cta.button {
   display: inline-flex;
   align-items: center;
@@ -1192,27 +1215,37 @@ select:focus-visible {
 
 .golazo-hero__ghost {
   display: inline-flex;
+  position: relative;
   align-items: center;
-  gap: 0.5em;
+  gap: 0.45em;
   font-family: var(--font-heading--family);
   font-weight: var(--font-heading--weight, 700);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  font-size: 0.9rem;
+  font-size: clamp(1rem, 1.15vw, 1.3rem);
+  line-height: 1;
   color: var(--color-foreground);
-  text-decoration-line: underline;
-  text-decoration-color: transparent;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 6px;
-  transition: text-decoration-color var(--animation-speed) var(--animation-easing);
+  text-decoration: none;
+}
+
+.golazo-hero__ghost::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -0.45em;
+  border-block-end: 3px solid currentColor;
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform var(--animation-speed) var(--animation-easing);
 }
 
 .golazo-hero__ghost span {
   transition: transform var(--animation-speed) var(--animation-easing);
 }
 
-.golazo-hero__ghost:hover {
-  text-decoration-color: currentcolor;
+.golazo-hero__ghost:hover::after,
+.golazo-hero__ghost:focus-visible::after {
+  transform: scaleX(1.04);
 }
 
 .golazo-hero__ghost:hover span {
@@ -1418,16 +1451,39 @@ select:focus-visible {
   line-height: 0.92;
 }
 
-.section-resource-list__header .text-block.h3 a {
+.section-resource-list__header .text-block.h3 a[href='/collections/frontpage'] {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  gap: 0.45em;
   color: inherit;
-  text-decoration-line: underline;
-  text-decoration-color: transparent;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 6px;
+  text-decoration: none !important;
+  text-decoration-line: none !important;
 }
 
-.section-resource-list__header .text-block.h3 a:hover {
-  text-decoration-color: currentcolor;
+.section-resource-list__header .text-block.h3 a[href='/collections/frontpage']::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -0.16em;
+  border-block-end: 3px solid currentColor;
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform var(--animation-speed) var(--animation-easing);
+}
+
+.section-resource-list__header .text-block.h3 a[href='/collections/frontpage']::after {
+  content: '→';
+  transition: transform var(--animation-speed) var(--animation-easing);
+}
+
+.section-resource-list__header .text-block.h3 a[href='/collections/frontpage']:hover::before,
+.section-resource-list__header .text-block.h3 a[href='/collections/frontpage']:focus-visible::before {
+  transform: scaleX(1.04);
+}
+
+.section-resource-list__header .text-block.h3 a[href='/collections/frontpage']:hover::after {
+  transform: translateX(4px);
 }
 
 /* Black border on product card hover (outline avoids layout shift) */
@@ -1462,7 +1518,7 @@ select:focus-visible {
 /* ------------------------------------------------------------------ */
 .product-details .product-form-buttons {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--height-buy-buttons);
+  grid-template-columns: minmax(0, 1fr) var(--height-buy-buttons);
   column-gap: var(--gap-sm);
   row-gap: var(--gap-md);
 }
@@ -1506,15 +1562,11 @@ select:focus-visible {
 }
 
 .product-details .product-form-buttons > .accelerated-checkout-block {
-  display: flex;
-  align-items: stretch;
-  grid-column: 2;
-  margin-block-start: var(--gap-xs);
-  min-width: 0;
+  display: none;
 }
 
 .product-details .product-form-buttons > .golazo-product-wishlist {
-  grid-column: 3;
+  grid-column: 2;
   margin-block-start: var(--gap-xs);
   min-width: var(--height-buy-buttons);
 }
@@ -1564,4 +1616,14 @@ select:focus-visible {
 .product-details .product-form-buttons > .golazo-product-wishlist svg {
   width: 22px;
   height: 22px;
+}
+
+.product-details .product-payment-methods {
+  margin-block-start: var(--gap-xl);
+  align-items: center;
+  text-align: center;
+}
+
+.product-details .product-payment-methods .payment-method-icons__list {
+  justify-content: center;
 }

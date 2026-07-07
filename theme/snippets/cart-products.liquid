@@ -96,7 +96,7 @@
             role="caption"
           >
             {{ 'content.cart_total' | t }}
-            <span>{{ cart.total_price | money_with_currency }}</span>
+            <span>{{ cart.total_price | money }}</span>
           </caption>
 
           <thead
@@ -155,23 +155,16 @@
                 >
                   {% if item.image -%}
                     {% liquid
-                      assign ratio = 1
                       assign border_opacity = settings.cart_thumbnail_border_opacity | divided_by: 100.0
                       assign border_override = '--border-width: [cart_thumbnail_border_width]px; --border-style: [cart_thumbnail_border_style]; --border-color: rgb(var(--color-border-rgb) / [cart_thumbnail_border_opacity]); --border-radius: [cart_thumbnail_border_radius]px;' | replace: '[cart_thumbnail_border_width]', settings.cart_thumbnail_border_width | replace: '[cart_thumbnail_border_style]', settings.cart_thumbnail_border | replace: '[cart_thumbnail_border_opacity]', border_opacity | replace: '[cart_thumbnail_border_radius]', settings.cart_thumbnail_border_radius
 
                       if settings.cart_thumbnail_border_radius > 0
                         assign border_override = border_override | append: ' overflow: hidden;'
                       endif
-                      if block_settings.image_ratio == 'portrait'
-                        assign ratio = 0.8
-                      elsif block_settings.image_ratio == 'adapt'
-                        assign ratio = item.image.aspect_ratio
-                      endif
                     %}
                     <a
                       href="{{ item.url }}"
                       class="cart-items__media-container"
-                      style="--ratio:{{ ratio }};"
                     >
                       {%- liquid
                         echo item.image | image_url: width: 250 | image_tag: class: 'cart-items__media-image border-style', style: border_override
@@ -393,13 +386,8 @@
                   </div>
                 </td>
                 {%- liquid
-                  if settings.currency_code_enabled_cart_items
-                    assign price = item.final_line_price | money_with_currency
-                    assign unit_price = item.unit_price | money_with_currency
-                  else
-                    assign price = item.final_line_price | money
-                    assign unit_price = item.unit_price | money
-                  endif
+                  assign price = item.final_line_price | money
+                  assign unit_price = item.unit_price | money
                 -%}
                 <td
                   class="cart-items__price cart-secondary-typography"
@@ -801,18 +789,19 @@
 
   .cart-items__media-container {
     display: flex;
-    aspect-ratio: var(--ratio);
+    aspect-ratio: 1;
     position: relative;
     width: 100%;
     overflow: hidden;
+    background: var(--golazo-media-bg);
   }
 
   .cart-items__media-image {
     aspect-ratio: inherit;
     object-fit: cover;
-    object-position: center center;
+    object-position: top center;
     width: 100%;
-    height: auto;
+    height: 100%;
   }
 
   .cart-items__empty-button {

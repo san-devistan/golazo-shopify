@@ -1,0 +1,61 @@
+{%- doc -%}
+  Renders the enabled shop payment method icons.
+
+  @param {string} [class] - Additional class names for the wrapper
+{%- enddoc -%}
+
+{%- if shop.enabled_payment_types.size > 0 -%}
+  <div class="payment-method-icons{% if class != blank %} {{ class }}{% endif %}">
+    <span class="visually-hidden">{{ 'blocks.payment_methods' | t }}</span>
+    <ul
+      class="payment-method-icons__list"
+      role="list"
+      aria-label="{{ 'blocks.payment_methods' | t }}"
+    >
+      {%- for type in shop.enabled_payment_types -%}
+        <li class="payment-method-icons__item">
+          {{ type | payment_type_svg_tag: class: 'payment-method-icons__icon icon icon--full-color' }}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+{%- endif -%}
+
+{% stylesheet %}
+  .payment-method-icons {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-xs);
+  }
+
+  .payment-method-icons__list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--gap-2xs);
+    margin: 0;
+    padding: 0;
+  }
+
+  .payment-method-icons__item {
+    display: flex;
+    align-items: center;
+  }
+
+  .payment-method-icons__icon {
+    display: block;
+    width: auto;
+    height: 1.45rem;
+  }
+
+  .cart-payment-methods {
+    align-items: center;
+    margin-block-start: var(--gap-sm);
+    text-align: center;
+  }
+
+  .cart-payment-methods .payment-method-icons__list {
+    justify-content: center;
+  }
+{% endstylesheet %}

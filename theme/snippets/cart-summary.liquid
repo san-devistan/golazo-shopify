@@ -1,7 +1,6 @@
 {%- doc -%}
   Renders the cart summary totals.
 
-  @param {string} [accelerated_checkout_buttons_layout] - { 'vertical' } Forced layout of the additional checkout buttons, instead of relying on platform's layout.
   @param {string} [section_id] - The section ID for cart discount component.
 {%- enddoc -%}
 
@@ -218,20 +217,19 @@
     </div>
   {% endif %}
 
-  {%- liquid
-    if settings.currency_code_enabled_cart_total
-      assign total_price = cart.total_price | money_with_currency
-    else
-      assign total_price = cart.total_price | money
-    endif
-  -%}
+  {%- assign total_price = cart.total_price | money -%}
+  {%- assign shipping_price = 0 | money_without_trailing_zeros -%}
 
   <div class="cart-totals__container{% if settings.show_installments %} cart-totals__container--has-installments{% endif %}">
+    <span class="cart-totals__item cart-totals__shipping">
+      <span class="cart-totals__shipping-label cart-primary-typography">{{ 'content.shipping' | t }}</span>
+      <span class="cart-totals__shipping-value cart-secondary-typography">{{ shipping_price }}</span>
+    </span>
     <span
       class="cart-totals__item cart-totals__total"
       role="status"
     >
-      <span class="cart-totals__total-label cart-primary-typography">{{ 'content.cart_estimated_total' | t }}</span>
+      <span class="cart-totals__total-label cart-primary-typography">{{ 'content.total' | t }}</span>
       <text-component
         ref="cartTotal"
         value="{{ total_price | strip_html }}"
@@ -250,9 +248,6 @@
         {% endform %}
       </span>
     {% endif %}
-    <div class="cart-totals__item cart-totals__tax-note cart-primary-typography">
-      {% render 'tax-info', has_discounts_enabled: settings.show_add_discount_code %}
-    </div>
   </div>
 </div>
 
@@ -272,16 +267,9 @@
     </span>
   </button>
 
-  {% if additional_checkout_buttons and settings.show_accelerated_checkout_buttons %}
-    <div
-      class="
-        additional-checkout-buttons
-        {% if accelerated_checkout_buttons_layout == 'vertical' %}additional-checkout-buttons--vertical{% endif %}
-      "
-    >
-      {{ content_for_additional_checkout_buttons }}
-    </div>
-  {% endif %}
+  {% unless cart == empty %}
+    {% render 'payment-method-icons', class: 'cart-payment-methods' %}
+  {% endunless %}
 </div>
 
 {% stylesheet %}
@@ -658,7 +646,7 @@
   .cart-drawer__summary .cart-totals__total-label,
   .cart-drawer__summary .cart-totals__total-value {
     font-family: var(--font-heading--family);
-    font-weight: 900;
+    font-weight: 800;
     line-height: 0.95;
     letter-spacing: 0;
     text-transform: uppercase;
@@ -666,12 +654,21 @@
   }
 
   .cart-drawer__summary .cart-totals__total-label {
-    font-size: clamp(1.05rem, 3cqi, 1.25rem);
+    font-size: clamp(0.95rem, 2.5cqi, 1.1rem);
   }
 
   .cart-drawer__summary .cart-totals__total-value {
-    font-size: clamp(1.1rem, 3.25cqi, 1.35rem);
+    font-size: clamp(1rem, 2.75cqi, 1.2rem);
     text-align: end;
+  }
+
+  .cart-drawer__summary .cart-totals__shipping-label,
+  .cart-drawer__summary .cart-totals__shipping-value {
+    font-family: var(--font-paragraph--family);
+    font-weight: var(--font-paragraph--weight);
+    font-size: var(--font-size--sm);
+    line-height: 1.2;
+    color: rgb(var(--color-foreground-rgb) / 0.72);
   }
 
   .cart-drawer__summary .cart-totals__tax-note {

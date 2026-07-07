@@ -1,7 +1,13 @@
 
 
 {%- assign block_settings = block.settings -%}
-{%- assign plain_text = block_settings.text | strip_newlines | strip_html | strip -%}
+{%- assign announcement_text = block_settings.text -%}
+{%- assign translation_prefix = announcement_text | slice: 0, 2 -%}
+{%- if translation_prefix == 't:' -%}
+  {%- assign translation_key = announcement_text | remove: 't:' -%}
+  {%- capture announcement_text -%}{{ translation_key | t }}{%- endcapture -%}
+{%- endif -%}
+{%- assign plain_text = announcement_text | strip_newlines | strip_html | strip -%}
 {%- assign block_index = section.blocks | find_index: 'id', block.id -%}
 
 {%- unless plain_text == '' -%}
@@ -28,7 +34,7 @@
     aria-hidden="{% if block_index == 0 %}false{% else %}true{% endif %}"
   >
     <p class="announcement-bar__text">
-      {{ block.settings.text }}
+      {{ announcement_text }}
     </p>
 
     {% if block_settings.link != blank %}
@@ -37,7 +43,7 @@
         href="{{ block_settings.link }}"
       >
         <span class="visually-hidden">
-          {{ block_settings.text | strip_html }}
+          {{ announcement_text | strip_html }}
         </span>
       </a>
     {% endif %}

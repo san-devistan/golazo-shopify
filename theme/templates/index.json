@@ -14,8 +14,9 @@
         "eyebrow": "2026 World Cup Collection",
         "heading": "World Cup 26",
         "subheading": "Every national kit for 2026 — engineered for the pitch, built for the streets.",
-        "button_label": "Shop the collection",
-        "button_label_2": "Browse all jerseys",
+        "button_label": "",
+        "button_label_2": "See all",
+        "button_link_2": "/collections/frontpage",
         "collection": "frontpage",
         "products_limit": 0,
         "speed": 4,
@@ -62,7 +63,7 @@
               "type": "_product-list-text",
               "name": "t:names.collection_title",
               "settings": {
-                "text": "<h3><a href=\"/collections/frontpage\">{{ closest.collection.title }} →</a></h3>",
+                "text": "<h3><a href=\"/collections/frontpage\">{{ closest.collection.title }}</a></h3>",
                 "width": "fit-content",
                 "max_width": "normal",
                 "alignment": "left",
@@ -195,49 +196,10 @@
         "padding-block-start": 56,
         "padding-block-end": 64
       }
-    },
-    "golazo_value_props": {
-      "type": "golazo-value-props",
-      "blocks": {
-        "vp_shipping": {
-          "type": "value_prop",
-          "settings": {
-            "icon": "box",
-            "title": "Free shipping over $150",
-            "text": "Fast, tracked delivery worldwide."
-          }
-        },
-        "vp_returns": {
-          "type": "value_prop",
-          "settings": {
-            "icon": "return",
-            "title": "30-day returns",
-            "text": "Easy, no-hassle exchanges."
-          }
-        },
-        "vp_secure": {
-          "type": "value_prop",
-          "settings": {
-            "icon": "lock",
-            "title": "Secure checkout",
-            "text": "Protected payments, every order."
-          }
-        }
-      },
-      "block_order": [
-        "vp_shipping",
-        "vp_returns",
-        "vp_secure"
-      ],
-      "settings": {
-        "padding-block-start": 32,
-        "padding-block-end": 32
-      }
     }
   },
   "order": [
     "golazo_hero",
-    "product_list_fa6P9H",
-    "golazo_value_props"
+    "product_list_fa6P9H"
   ]
 }

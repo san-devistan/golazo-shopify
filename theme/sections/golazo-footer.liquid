@@ -1,0 +1,229 @@
+<section class="golazo-footer">
+  <div class="golazo-footer__inner">
+    <div class="golazo-footer__assurance">
+      <ul
+        class="golazo-footer__trust"
+        role="list"
+      >
+        <li class="golazo-footer__trust-item">
+          <span class="golazo-footer__trust-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" focusable="false">
+              {% render 'icon', icon: 'box' %}
+            </svg>
+          </span>
+          <span>{{ 'content.free_shipping_worldwide' | t }}</span>
+        </li>
+        <li class="golazo-footer__trust-item">
+          <span class="golazo-footer__trust-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" focusable="false">
+              {% render 'icon', icon: 'return' %}
+            </svg>
+          </span>
+          <span>{{ 'content.satisfied_or_refunded' | t }}</span>
+        </li>
+        <li class="golazo-footer__trust-item">
+          <span class="golazo-footer__trust-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" focusable="false">
+              {% render 'icon', icon: 'lock' %}
+            </svg>
+          </span>
+          <span>{{ 'content.secure_checkout' | t }}</span>
+        </li>
+      </ul>
+      {% render 'payment-method-icons', class: 'golazo-footer__payments cart-payment-methods' %}
+    </div>
+
+    <div class="golazo-footer__main">
+      <div class="golazo-footer__brand">
+        <a class="golazo-footer__logo" href="{{ routes.root_url }}">{{ shop.name }}</a>
+        <p class="golazo-footer__text">{{ 'content.footer_about' | t }}</p>
+      </div>
+
+      <nav class="golazo-footer__nav" aria-label="{{ 'content.footer_shop' | t }}">
+        <h2 class="golazo-footer__heading">{{ 'content.footer_shop' | t }}</h2>
+        <ul role="list" class="golazo-footer__links">
+          <li><a href="{{ routes.root_url }}">{{ 'content.home' | t }}</a></li>
+          <li><a href="{{ routes.all_products_collection_url }}">{{ 'content.all_jerseys' | t }}</a></li>
+          <li><a href="{{ routes.search_url }}">{{ 'content.search' | t }}</a></li>
+          <li><a href="{{ routes.cart_url }}">{{ 'content.cart_title' | t }}</a></li>
+        </ul>
+      </nav>
+
+      <nav class="golazo-footer__nav" aria-label="{{ 'content.footer_help' | t }}">
+        <h2 class="golazo-footer__heading">{{ 'content.footer_help' | t }}</h2>
+        <ul role="list" class="golazo-footer__links">
+          <li><a href="{{ routes.all_products_collection_url }}">{{ 'actions.continue_shopping' | t }}</a></li>
+          <li><a href="{{ routes.search_url }}">{{ 'content.search_results_label' | t }}</a></li>
+          <li><a href="{{ routes.cart_url }}">{{ 'content.checkout' | t }}</a></li>
+        </ul>
+      </nav>
+
+      <nav class="golazo-footer__nav" aria-label="{{ 'content.terms_and_policies' | t }}">
+        <h2 class="golazo-footer__heading">{{ 'content.terms_and_policies' | t }}</h2>
+        <ul role="list" class="golazo-footer__links">
+          {%- for policy in shop.policies -%}
+            {%- if policy != blank -%}
+              <li>
+                <a href="{{ policy.url }}">{{ policy.title | escape }}</a>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </nav>
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .golazo-footer {
+    border-block-start: 1px solid var(--golazo-hairline);
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  .golazo-footer__inner {
+    max-width: var(--page-width);
+    margin-inline: auto;
+    padding: var(--padding-4xl) var(--page-margin) var(--padding-2xl);
+  }
+
+  .golazo-footer__assurance {
+    display: grid;
+    gap: var(--gap-xl);
+  }
+
+  .golazo-footer__trust {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--gap-lg);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .golazo-footer__trust-item {
+    display: grid;
+    align-content: start;
+    justify-items: center;
+    gap: var(--gap-xs);
+    min-width: 0;
+    color: var(--golazo-muted);
+    font-family: var(--font-body--family);
+    font-size: var(--font-size--sm);
+    line-height: 1.25;
+    text-align: center;
+  }
+
+  .golazo-footer__trust-icon {
+    display: grid;
+    min-height: 24px;
+    place-items: center;
+    color: var(--color-foreground);
+  }
+
+  .golazo-footer__trust-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .golazo-footer__payments {
+    align-items: center;
+    text-align: center;
+  }
+
+  .golazo-footer__payments .payment-method-icons__list {
+    justify-content: center;
+  }
+
+  .golazo-footer__main {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap-2xl);
+    margin-block-start: var(--margin-3xl);
+    padding-block-start: var(--padding-3xl);
+    border-block-start: 1px solid var(--golazo-hairline);
+  }
+
+  .golazo-footer__brand,
+  .golazo-footer__nav {
+    min-width: 0;
+  }
+
+  .golazo-footer__logo {
+    display: inline-block;
+    color: currentColor;
+    font-family: var(--font-heading--family);
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-weight: 900;
+    line-height: 0.85;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .golazo-footer__text {
+    max-width: 34rem;
+    margin: var(--margin-md) 0 0;
+    color: var(--golazo-muted);
+    font-size: var(--font-size--sm);
+    line-height: 1.45;
+  }
+
+  .golazo-footer__heading {
+    margin: 0 0 var(--margin-md);
+    font-family: var(--font-heading--family);
+    font-size: 1rem;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .golazo-footer__links {
+    display: grid;
+    gap: var(--gap-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .golazo-footer__links a {
+    color: var(--golazo-muted);
+    font-size: var(--font-size--sm);
+    text-decoration: none;
+  }
+
+  .golazo-footer__links a:hover {
+    color: var(--color-foreground);
+  }
+
+  @media screen and (min-width: 750px) {
+    .golazo-footer__main {
+      grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .golazo-footer__trust {
+      gap: var(--gap-md);
+    }
+
+    .golazo-footer__trust-item {
+      font-size: var(--font-size--xs);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "GOLAZO footer",
+  "enabled_on": {
+    "groups": ["footer"]
+  },
+  "settings": [],
+  "presets": [
+    {
+      "name": "GOLAZO footer",
+      "category": "t:categories.footer"
+    }
+  ]
+}
+{% endschema %}

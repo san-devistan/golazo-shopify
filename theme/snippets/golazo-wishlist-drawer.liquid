@@ -1,0 +1,145 @@
+{% doc %}
+  Renders the client-side wishlist drawer populated by golazo-wishlist.js.
+
+  @example
+  {% render 'golazo-wishlist-drawer' %}
+{% enddoc %}
+
+<theme-drawer
+  id="wishlist-drawer"
+  no-persist
+>
+  <dialog
+    ref="panel"
+    class="theme-drawer__dialog color-custom-drawer"
+    aria-labelledby="wishlist-drawer-heading"
+  >
+    <div
+      class="golazo-wishlist-drawer"
+      data-wishlist-drawer
+      data-empty-text="{{ 'content.wishlist_empty' | t | escape }}"
+      data-saved-product-text="{{ 'content.saved_product' | t | escape }}"
+    >
+      {% assign wishlist_drawer_title = 'content.wishlist_title' | t | upcase %}
+      {% capture wishlist_badge_html %}
+        <span
+          class="theme-drawer__badge visually-hidden"
+          aria-hidden="true"
+          data-maintain-ratio
+          data-wishlist-count
+        >
+          0
+        </span>
+      {% endcapture %}
+      {% render 'theme-drawer-header',
+        title: wishlist_drawer_title,
+        drawer_id: 'wishlist-drawer',
+        heading_id: 'wishlist-drawer-heading',
+        title_append: wishlist_badge_html
+      %}
+
+      <div class="golazo-wishlist-drawer__content">
+        <p
+          class="golazo-wishlist-drawer__empty"
+          data-wishlist-empty
+        >
+          {{ 'content.wishlist_empty' | t }}
+        </p>
+        <ul
+          class="golazo-wishlist-drawer__items list-unstyled"
+          data-wishlist-list
+        ></ul>
+      </div>
+    </div>
+  </dialog>
+</theme-drawer>
+
+{% stylesheet %}
+  #wishlist-drawer .theme-drawer__title {
+    font-family: var(--font-heading--family);
+    font-weight: 900;
+    font-size: clamp(2.25rem, 7vw, 3rem);
+    line-height: 0.9;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .golazo-wishlist-drawer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .golazo-wishlist-drawer__content {
+    flex: 1;
+    overflow: auto;
+    padding: 0 var(--theme-drawer-padding) var(--theme-drawer-padding);
+  }
+
+  .golazo-wishlist-drawer__empty {
+    margin: 0;
+    color: rgb(var(--color-foreground-rgb) / 0.72);
+  }
+
+  .golazo-wishlist-drawer__items {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  .golazo-wishlist-drawer__item {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: 0.75rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .golazo-wishlist-drawer__media {
+    width: 4.5rem;
+    aspect-ratio: var(--golazo-product-media-ratio);
+    overflow: hidden;
+    background: var(--golazo-media-bg);
+  }
+
+  .golazo-wishlist-drawer__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+
+  .golazo-wishlist-drawer__media-placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--golazo-media-bg);
+  }
+
+  .golazo-wishlist-drawer__details {
+    display: grid;
+    align-content: start;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .golazo-wishlist-drawer__title,
+  .golazo-wishlist-drawer__price {
+    margin: 0;
+  }
+
+  .golazo-wishlist-drawer__title {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight, 700);
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .golazo-wishlist-drawer__price {
+    color: var(--golazo-muted);
+    font-size: 0.875rem;
+  }
+{% endstylesheet %}

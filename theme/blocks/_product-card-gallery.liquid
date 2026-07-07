@@ -8,6 +8,12 @@
       type="button"
       class="product-card__wishlist"
       data-product-id="{{ product.id }}"
+      data-product-title="{{ product.title | escape }}"
+      data-product-url="{{ product.selected_or_first_available_variant.url }}"
+      data-product-price="{{ product.price | money | strip_html | escape }}"
+      {% if product.featured_media.preview_image %}
+        data-product-image="{{ product.featured_media.preview_image | image_url: width: 160 }}"
+      {% endif %}
       data-wishlist-add-label="{{ 'accessibility.add_to_wishlist' | t: product_title: product.title | escape }}"
       data-wishlist-remove-label="{{ 'accessibility.remove_from_wishlist' | t: product_title: product.title | escape }}"
       aria-label="{{ 'accessibility.add_to_wishlist' | t: product_title: product.title | escape }}"

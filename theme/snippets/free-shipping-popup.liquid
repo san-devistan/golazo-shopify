@@ -1,0 +1,152 @@
+{% doc %}
+  Renders a first-visit free shipping popup.
+
+  @example
+  {% render 'free-shipping-popup' %}
+{% enddoc %}
+
+<dialog
+  id="free-shipping-popup"
+  class="free-shipping-popup"
+  data-free-shipping-popup
+  aria-labelledby="free-shipping-popup-heading"
+>
+  <div class="free-shipping-popup__content">
+    <h2
+      id="free-shipping-popup-heading"
+      class="free-shipping-popup__title"
+    >
+      {{ 'content.free_shipping_worldwide' | t }}
+    </h2>
+    <button
+      type="button"
+      class="button free-shipping-popup__button"
+      data-free-shipping-popup-close
+    >
+      {{ 'actions.close' | t }}
+    </button>
+  </div>
+</dialog>
+
+{% stylesheet %}
+  .free-shipping-popup {
+    position: fixed;
+    inset: 0;
+    width: min(420px, calc(100vw - 32px));
+    max-width: min(420px, calc(100vw - 32px));
+    margin: auto;
+    padding: var(--padding-5xl) var(--padding-xl) var(--padding-xl);
+    border: 1px solid var(--color-foreground);
+    border-radius: 0;
+    background: var(--color-foreground);
+    color: var(--color-background);
+    box-shadow: var(--shadow-popover);
+  }
+
+  .free-shipping-popup::backdrop {
+    background: rgb(0 0 0 / 0.48);
+  }
+
+  .free-shipping-popup[open] {
+    animation: freeShippingPopupIn var(--animation-speed) var(--animation-easing) forwards;
+  }
+
+  .free-shipping-popup__content {
+    display: grid;
+    gap: var(--gap-xl);
+    text-align: center;
+  }
+
+  .free-shipping-popup__title {
+    margin: 0;
+    font-family: var(--font-heading--family);
+    font-size: clamp(1.65rem, 6vw, 2.5rem);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .free-shipping-popup__button {
+    justify-self: center;
+    min-width: 9rem;
+    border: 1px solid currentColor;
+    border-radius: 0;
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-heading--family);
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  @keyframes freeShippingPopupIn {
+    from {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (function () {
+    var key = 'golazo:free-shipping-popup:v1';
+
+    function hasSeenPopup() {
+      try {
+        return localStorage.getItem(key) === 'true';
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function markSeen() {
+      try {
+        localStorage.setItem(key, 'true');
+      } catch (error) {}
+    }
+
+    function init() {
+      var popup = document.querySelector('[data-free-shipping-popup]');
+      if (!(popup instanceof HTMLDialogElement)) return;
+      if (popup.dataset.freeShippingPopupInitialized === 'true') return;
+      popup.dataset.freeShippingPopupInitialized = 'true';
+
+      function closePopup() {
+        markSeen();
+        if (popup.open) popup.close();
+      }
+
+      function showPopup() {
+        if (hasSeenPopup() || popup.open) return;
+
+        if (typeof popup.showModal === 'function') {
+          popup.showModal();
+        } else {
+          popup.setAttribute('open', '');
+        }
+      }
+
+      popup.addEventListener('close', markSeen);
+      popup.addEventListener('click', function (event) {
+        if (event.target === popup) closePopup();
+      });
+
+      document.querySelectorAll('[data-free-shipping-popup-close]').forEach(function (button) {
+        button.addEventListener('click', closePopup);
+      });
+
+      setTimeout(showPopup, 800);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+{% endjavascript %}

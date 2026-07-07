@@ -136,7 +136,7 @@ class HeaderActions extends Component {
     totalLabel.textContent = preview.dataset.totalText || '';
 
     const totalValue = document.createElement('span');
-    totalValue.textContent = this.#formatCartPreviewMoney(cart?.total_price, cart, preview, 'total');
+    totalValue.textContent = this.#formatCartPreviewMoney(cart?.total_price, cart, preview);
 
     total.append(totalLabel, totalValue);
     content.append(list, total);
@@ -174,7 +174,7 @@ class HeaderActions extends Component {
 
     const price = document.createElement('p');
     price.className = 'header-cart-preview__price';
-    price.textContent = this.#formatCartPreviewMoney(item?.final_line_price ?? item?.line_price, cart, preview, 'items');
+    price.textContent = this.#formatCartPreviewMoney(item?.final_line_price ?? item?.line_price, cart, preview);
 
     titleRow.append(title, price);
     details.append(titleRow);
@@ -228,15 +228,11 @@ class HeaderActions extends Component {
       }));
   }
 
-  #formatCartPreviewMoney(value, cart, preview, formatContext) {
+  #formatCartPreviewMoney(value, cart, preview) {
     const amount = Number(value);
     if (!Number.isFinite(amount)) return '';
 
-    const usesCurrencyCode =
-      formatContext === 'total'
-        ? preview.dataset.useCurrencyCodeTotal === 'true'
-        : preview.dataset.useCurrencyCodeItems === 'true';
-    const format = usesCurrencyCode ? preview.dataset.moneyWithCurrencyFormat : preview.dataset.moneyFormat;
+    const format = preview.dataset.moneyFormat;
     const currency = typeof cart?.currency === 'string' ? cart.currency : preview.dataset.currency || '';
 
     return formatMoney(amount, format || '{{amount}}', currency);

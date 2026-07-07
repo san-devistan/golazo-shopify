@@ -431,6 +431,8 @@
   }
 
   .size-guide__dialog {
+    inset: 0;
+    position: fixed;
     width: min(560px, calc(100vw - 32px));
     max-width: min(560px, calc(100vw - 32px));
     max-height: calc(100dvh - 32px);
@@ -439,12 +441,26 @@
     overflow: auto;
   }
 
+  .size-guide__dialog.dialog-modal[open] {
+    animation: sizeGuideFadeIn var(--animation-speed) var(--animation-easing) forwards;
+  }
+
+  .size-guide__dialog.dialog-modal.dialog-closing {
+    animation: sizeGuideFadeOut var(--animation-speed) var(--animation-easing) forwards;
+  }
+
   .size-guide__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--gap-md);
     margin-block-end: var(--margin-lg);
+  }
+
+  .size-guide__close.close-button {
+    position: absolute;
+    inset-block-start: var(--padding-md);
+    inset-inline-end: var(--padding-md);
   }
 
   .size-guide__title {
@@ -513,6 +529,30 @@
 
   .size-guide[data-size-guide-unit='imperial'] .size-guide__cell--imperial {
     display: table-cell;
+  }
+
+  @keyframes sizeGuideFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes sizeGuideFadeOut {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    to {
+      opacity: 0;
+      transform: scale(0.98);
+    }
   }
 
   @media screen and (max-width: 749px) {

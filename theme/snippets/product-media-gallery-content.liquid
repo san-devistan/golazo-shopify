@@ -781,6 +781,23 @@
     opacity: 0;
   }
 
+  @media screen and (min-width: 750px) {
+    .dialog-zoomed-gallery .product-media-container--image,
+    .dialog-zoomed-gallery .product-media-container--image .product-media,
+    .dialog-zoomed-gallery .product-media__drag-zoom-wrapper {
+      display: block;
+      aspect-ratio: auto;
+      min-height: 0;
+    }
+
+    .dialog-zoomed-gallery .product-media-container--image .product-media__image {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+  }
+
   @media screen and (max-width: 749px) {
     .dialog-zoomed-gallery {
       /* Prevent scroll wheel or swipe scrolling */
